@@ -195,14 +195,20 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
 		$customer_order = new WC_Order($order_id);
 
+		// Calculate total
+		$total = ($this->boleto_discount == 0) ? $customer_order->order_total : number_format($this->apply_discount($customer_order->order_total), 2, '.', '');
+
+		// Set new total value
+		$customer_order->set_total($total);
+
 		$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
 		$az_pay->config_order['reference'] = $order_id;
-		$az_pay->config_order['totalAmount'] = $customer_order->order_total;
+		$az_pay->config_order['totalAmount'] = str_replace('.', '', $total);
 		
 		$az_pay->config_boleto['acquirer'] = $this->boleto_acquirer;
 		$az_pay->config_boleto['expire'] = date('Y-m-d', strtotime('+ '.$this->boleto_validate.' days'));
 		$az_pay->config_boleto['nrDocument'] = str_pad($order_id, 9, '0', STR_PAD_LEFT);
-		$az_pay->config_boleto['amount'] = $customer_order->order_total;
+		$az_pay->config_boleto['amount'] = str_replace('.', '', $total);
 		$az_pay->config_boleto['instructions'] = $this->boleto_instructions;
 
 		$az_pay->config_billing['customerIdentity'] = $customer_order->user_id;
@@ -218,12 +224,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$az_pay->boleto();
 		
 		if ($az_pay->error == true)
-			throw new Exception('Erro de comunicação, tente novamente.');
+			throw new Exception('Erro de comunicação, tente novamente.');		
+
+		$gateway_response = $az_pay->response();
 
 		if ($gateway_response == null) 
 				throw new Exception("Problemas ao obter resposta sobre pagamento.");
-
-		$gateway_response = $az_pay->response();
 
 		if ($gateway_response->status != Config::$RESPONSE['GENERATED'])
 			throw new Exception("Pagamento não Autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
@@ -343,6 +349,25 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$json_azpay = json_decode($log->content);
 
 		return $json_azpay->processor->Boleto->details->urlBoleto;
+	}
+
+
+	/**
+	 * Get the value from discount
+	 * @param  [type] $cart_total [Value cart]
+	 * @return [type]             [description]
+	 */
+	public function get_discount($cart_total) {		
+		return ($cart_total * $this->boleto_discount) / 100;
+	}
+
+	/**
+	 * Apply the discount
+	 * @param  [type] $cart_total [description]
+	 * @return [type]             [description]
+	 */
+	public function apply_discount($cart_total) {
+		return $cart_total - $this->get_discount($cart_total);
 	}
 
 
