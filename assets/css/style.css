@@ -7,3 +7,14 @@
 .help_tip {
 	margin-right: -5px !important;
 }
+
+.azpay-form-admin {
+	position: relative;
+}
+
+.ad-image {
+	display: block;
+	position: absolute;
+	top: 100px;
+	right: 0;
+}
