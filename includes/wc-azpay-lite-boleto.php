@@ -6,8 +6,6 @@
 
 class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
-	public $creditcard_config = null;
-	
 	public function __construct() {
 
 		$this->id           = 'azpay_lite_boleto';
@@ -172,7 +170,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
 
 	/**
-	 * Save the configuration of Creditcards
+	 * Save the configuration
 	 * @return [type] [void]
 	 */
 	public function save_boleto_config() {
