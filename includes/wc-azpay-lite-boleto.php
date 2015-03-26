@@ -1,7 +1,17 @@
 <?php
+if (!defined('ABSPATH'))
+	exit;
+
 /**
- * WC AZPay Gateway
+ * WC AZPay Lite Boleto
+ * Payment Gateway
  *
+ * Provides a boleto payment method,
+ * integrated with AZPay Gateway.
+ *
+ * @class 		WC_AZPay_Lite_Boleto
+ * @extends		WC_Payment_Gateway
+ * @author 		Gabriel Guerreiro (gabrielguerreiro.com)
  */
 
 class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
@@ -11,7 +21,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$this->id           = 'azpay_lite_boleto';
 		$this->icon         = null;
 		$this->has_fields   = true;
-		$this->method_title = 'AZPay Lite - Boleto';
+		$this->method_title = 'AZPay Lite - Boleto Bancário';
 		$this->title = 'Boleto Bancário';
 
 		$this->init_form_fields();

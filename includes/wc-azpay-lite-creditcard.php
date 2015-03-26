@@ -1,7 +1,17 @@
 <?php
+if (!defined('ABSPATH'))
+	exit;
+
 /**
- * WC AZPay Gateway
+ * WC AZPay Lite Creditcard
+ * Payment Gateway
  *
+ * Provides a creditcard payment method,
+ * integrated with AZPay Gateway.
+ *
+ * @class 		WC_AZPay_Lite_Creditcard
+ * @extends		WC_Payment_Gateway
+ * @author 		Gabriel Guerreiro (gabrielguerreiro.com)
  */
 
 class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
