@@ -213,7 +213,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
 		$az_pay->config_order['reference'] = $order_id;
 		$az_pay->config_order['totalAmount'] = str_replace('.', '', $total);
-		$az_pay->config_options['urlReturn'] = '';
+		$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
 		
 		$az_pay->config_boleto['acquirer'] = $this->boleto_acquirer;
 		$az_pay->config_boleto['expire'] = date('Y-m-d', strtotime('+ '.$this->boleto_validate.' days'));
