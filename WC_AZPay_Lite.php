@@ -5,10 +5,13 @@
  * Description: WooCommerce AZPay is a plugin to integrate the WooCommerce with AZPay, a brazilian payment gateway
  * Author: Gabriel Guerreiro (gabrielguerreiro.com)
  * Author URI: http://www.gabrielguerreiro.com.br
- * Version: 1.0.0
+ * Version: 1.2.0
  * License: GNU General Public License v2.0
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
+
+ini_set( 'error_reporting', E_ALL );
+ini_set( 'display_errors', true );
 
 if (!defined('ABSPATH'))
 	exit;
@@ -25,23 +28,25 @@ if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get
 if(!class_exists('WC_AZPay_Lite')):
 
 class WC_AZPay_Lite {
-	
+
 	/**
 	 * Version of the plugin
-	 * 
+	 *
 	 */
-	const VERSION = '1.0.0';
+	const VERSION = '1.2.0';
 
 	/**
 	 * Instance of this class
 	 *
 	 */
 	protected static $instance = null;
-	
+
 
 	public function __construct() {
 
 		if (class_exists('WC_Payment_Gateway')) {
+
+			include_once(plugin_dir_path(__FILE__) . './vendors/azpay-php-sdk/azpay.php');
 			include_once 'includes/wc-azpay-lite-creditcard.php';
 			include_once 'includes/wc-azpay-lite-boleto.php';
 
@@ -51,6 +56,11 @@ class WC_AZPay_Lite {
 			 * My account item order link pay
 			 */
 			add_filter('woocommerce_my_account_my_orders_actions', array($this, 'order_link_pay'), 10, 2);
+
+			/**
+			 * Execute tasks based on AZPay returns
+			 */
+			add_action('init', array($this, 'azpay_callback'));
 
 		} else {
 			add_action('admin_notices', array($this, 'plugin_missing'));
@@ -64,9 +74,9 @@ class WC_AZPay_Lite {
 	 *
 	 * @return [WC_AZPay_Lite object]
 	 */
-	public static function get_instance() {		
-		if (self::$instance == null) 
-			self::$instance = new self;		
+	public static function get_instance() {
+		if (self::$instance == null)
+			self::$instance = new self;
 
 		return self::$instance;
 	}
@@ -74,6 +84,7 @@ class WC_AZPay_Lite {
 
 	/**
 	 * Join the AZPay gateway at the array
+	 *
 	 * @param  [type]
 	 * @return [type]
 	 */
@@ -93,13 +104,14 @@ class WC_AZPay_Lite {
 	/**
 	 * Activate the plugin
 	 * Create Log table
+	 *
 	 * @return [type]
 	 */
 	public static function activate() {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'azpay_log';
-		$charset_collate = $wpdb->get_charset_collate();	
+		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
 				  id INT(11) NOT NULL AUTO_INCREMENT,
@@ -109,12 +121,12 @@ class WC_AZPay_Lite {
 				  orderid INT(11) NOT NULL,
 				  PRIMARY KEY  (id)
 				) ENGINE=InnoDB DEFAULT CHARSET={$charset_collate} AUTO_INCREMENT=1;";
-		
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta($sql);
 
 		add_rewrite_endpoint('azpay', EP_PERMALINK | EP_ROOT);
-		flush_rewrite_rules();		
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -128,6 +140,7 @@ class WC_AZPay_Lite {
 
 	/**
 	 * My Account - link to order pay
+	 *
 	 * @param  [type] $actions [Links]
 	 * @param  [type] $order   [Order]
 	 * @return [type]          [description]
@@ -136,23 +149,106 @@ class WC_AZPay_Lite {
 		global $wpdb;
 
 		if ($order->status == 'on-hold') {
-			
+
 			$azpay_log = $wpdb->prefix.'azpay_log';
 			$log = $wpdb->get_row("SELECT * FROM $azpay_log WHERE orderid = {$order->id}");
 
 			if (!empty($log)) {
 
-				$json_azpay = json_decode($log->content);				
+				$json_azpay = json_decode($log->content);
 
 				if ($log->keylog == 'BOLETO_PAYMENT') {
 					$actions['azpay-boleto-link']['name'] = 'Pagar';
 					$actions['azpay-boleto-link']['url'] = $json_azpay->processor->Boleto->details->urlBoleto;
 				}
-			}			
+			}
 		}
 
 		return $actions;
-	} 
+	}
+
+
+	/**
+	 * Execute tasks based on AZPay callback
+	 *
+	 * @return void
+	 */
+	public function azpay_callback() {
+
+		// if URL ends with 'azpay'
+		if (preg_match('/azpay(\/|)$/', $_SERVER['REQUEST_URI'])) {
+
+			if (
+				!isset($_POST['TID']) ||
+				!isset($_POST['order_reference']) ||
+				!isset($_POST['customers_id']) ||
+				!isset($_POST['status'])
+			   )
+			return false;
+
+			global $wpdb;
+
+			$callback = array(
+				'tid' 			  => $_POST['TID'],
+				'order_reference' => $_POST['order_reference'],
+				'customers_id' 	  => $_POST['customers_id'],
+				'status' 		  => $_POST['status'],
+			);
+
+			// get Order
+			$order = new WC_Order($callback['order_reference']);
+
+			// get payment method
+			$payment_method = get_post_meta( $callback['order_reference'], '_payment_method', true );
+
+			// if not exists this Order or payment method is not Boleto
+			// return false
+			if (empty($order))
+				return false;
+
+			// Changes by status
+			switch ($callback['status']) {
+
+				case Config::$STATUS['APPROVED']:
+					$order->update_status('completed', 'Pagamento confirmado. AZPay TID: ' . $callback['tid']);
+					break;
+
+				case Config::$STATUS['CAPTURING']:
+					$order->update_status('processing', 'Aguardando confirmação de pagamento. AZPay TID: ' . $callback['tid']);
+					break;
+
+				case Config::$STATUS['CANCELLED']:
+					$order->update_status('cancelled', 'Pagamento cancelado. AZPay TID: ' . $callback['tid']);
+					break;
+
+				case Config::$STATUS['UNAUTHENTICATED']:
+					$order->update_status('failed', 'Falha no pagamento, cartão não autenticado. AZPay TID: ' . $callback['tid']);
+					break;
+
+				case Config::$STATUS['UNAUTHORIZED']:
+					$order->update_status('failed', 'Falha no pagamento, transação não autorizada pela operadora. AZPay TID: ' . $callback['tid']);
+					break;
+
+				case Config::$STATUS['UNAPPROVED']:
+					$order->update_status('on-hold', 'Transação não capturada, tente novamente pelo painel do AZPay. AZPay TID: ' . $callback['tid']);
+					break;
+			}
+
+			// register log
+			$azpay_log = $wpdb->prefix.'azpay_log';
+			$wpdb->insert(
+				$azpay_log,
+				array(
+					'datetime' => current_time('mysql'),
+					'keylog' => 'PAYMENT_CALLBACK',
+					'orderid' => $callback['order_reference'],
+					'content' => json_encode($callback),
+				)
+			);
+
+			die(0);
+		}
+	}
 
 }
 
