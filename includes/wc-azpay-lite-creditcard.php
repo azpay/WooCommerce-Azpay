@@ -17,29 +17,27 @@ if (!defined('ABSPATH'))
 class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 	public $creditcard_config = null;
-	
-	public function __construct() {
 
-		include_once(plugin_dir_path(__FILE__) . '../vendors/azpay-php-sdk/azpay.php');
+	public function __construct() {
 
 		$this->id           = 'azpay_lite_creditcard';
 		$this->icon         = null;
 		$this->has_fields   = true;
 		$this->method_title = 'AZPay Lite - Cartão de Crédito';
-		$this->title = 'Cartão de Crédito';		
+		$this->title = 'Cartão de Crédito';
 
 		$this->init_form_fields();
 		$this->init_settings();
-		
+
 	    foreach ($this->settings as $setting_key => $value) {
 	        $this->$setting_key = $value;
 	    }
-		
+
 		add_action('admin_notices', array($this, 'admin_notices'));
 
 		if (is_admin()) {
 
-			wp_enqueue_style('azpay-lite', plugins_url('assets/css/style.css', plugin_dir_path(__FILE__)));	
+			wp_enqueue_style('azpay-lite', plugins_url('assets/css/style.css', plugin_dir_path(__FILE__)));
 
 	        if (version_compare( WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_options'));
@@ -57,12 +55,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function admin_notices() {
-		if (is_admin()) {			
+		if (is_admin()) {
 			if (get_woocommerce_currency() != 'BRL')
-				add_action('admin_notices', array($this, 'currency_not_supported_message'));			
+				add_action('admin_notices', array($this, 'currency_not_supported_message'));
 		}
 	}
-	
+
 
 	/**
 	 * Admin Panel Options.
@@ -83,10 +81,10 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 	 *
 	 * @return void
 	 */
-	public function init_form_fields() {	
+	public function init_form_fields() {
 
 		$fields = array(
-			
+
 			// AZPay Config
 			'azpay_lite_title' => array(
 				'title' => 'Woocommerce AZPay Lite - Cartão de Crédito',
@@ -153,7 +151,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'2' => 'Cielo - Buy Page Cielo',
 					'3' => 'Redecard - Komerci WebService',
 					'4' => 'Redecard - Komerci Integrado',
-					'6' => 'Elavon'
+					'6' => 'Elavon',
+					'20' => 'Stone',
 				)
 			),
 			'visa_parcel_min' => array(
@@ -201,7 +200,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'2' => 'Cielo - Buy Page Cielo',
 					'3' => 'Redecard - Komerci WebService',
 					'4' => 'Redecard - Komerci Integrado',
-					'6' => 'Elavon'
+					'6' => 'Elavon',
+					'20' => 'Stone',
 				)
 			),
 			'mastercard_parcel_min' => array(
@@ -501,7 +501,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'12' => '12x',
 				)
 			),
-			
+
 		);
 
 		$this->form_fields = $fields;
@@ -512,9 +512,9 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 	 * @param  [type] $order_id [description]
 	 * @return [type]           [description]
 	 */
-	public function process_payment($order_id) {	
-		
-		global $woocommerce;		
+	public function process_payment($order_id) {
+
+		global $woocommerce;
 
 		try {
 
@@ -535,15 +535,14 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 			// Check quantity of parcels
 			if ($parcels > $this->{$flag.'_parcels'})
-				throw new Exception('Quantidade inválida de parcelas.');				
+				throw new Exception('Quantidade inválida de parcelas.');
 
 			$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
 			$az_pay->config_order['reference'] = $order_id;
-			//$az_pay->config_order['totalAmount'] = 1000;
 			$az_pay->config_order['totalAmount'] = $customer_order->order_total;
+			$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
 
 			$az_pay->config_card_payments['amount'] = $customer_order->order_total;
-			//$az_pay->config_card_payments['amount'] = 1000;
 
 			$acquirer = $flag . '_acquirer';
 			$az_pay->config_card_payments['acquirer'] = $this->$acquirer;
@@ -565,7 +564,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
-			$az_pay->sale();
+			$az_pay->sale()->execute();
 
 			// Se houver erro ao executar o CURL
 			// ou não retornar 200
@@ -574,20 +573,43 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 			$gateway_response = $az_pay->response();
 
-			if ($gateway_response == null) 
+			if ($gateway_response == null)
 				throw new Exception("Problemas ao obter resposta sobre pagamento.");
 
-			if ($gateway_response->status != Config::$RESPONSE['APPROVED'])
+			if ($gateway_response->status != Config::$STATUS['APPROVED'])
 				throw new Exception("Pagamento não Autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
 
 			$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
-			$customer_order->payment_complete();		
-			$woocommerce->cart->empty_cart();			
-			
+			$customer_order->payment_complete();
+			$woocommerce->cart->empty_cart();
+
+			/**
+			 * Log
+			 */
+			$azpay_log = $wpdb->prefix.'azpay_log';
+			$wpdb->insert( 
+				$azpay_log, 
+				array( 
+					'datetime' => current_time('mysql'),
+					'keylog' => 'CREDIT_CARD_XML',
+					'orderid' => $order_id,
+					'content' => json_encode($az_pay->getXml()),
+				) 
+			);
+			$wpdb->insert( 
+				$azpay_log, 
+				array( 
+					'datetime' => current_time('mysql'),
+					'keylog' => 'CREDIT_CARD_PAYMENT',
+					'orderid' => $order_id,
+					'content' => json_encode($gateway_response),
+				) 
+			);
+
 			$response = array(
 				'result'   => 'success',
 				'redirect' => $url = $this->get_return_url($customer_order)
-			);			
+			);
 
 		} catch (Exception $e) {
 			$this->add_error($e->getMessage());
@@ -600,7 +622,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		return $response;
 	}
 
-	
+
 	public function currency_not_supported_message() {
 		echo '<div class="error"><p><strong>AZPay Lite - Cartão de Crédito</strong>: Moeda não aceita</p></div>';
 	}
@@ -631,7 +653,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		} else {
 			$order_id = isset($_GET['order_id']) ? absint($_GET['order_id']) : 0;
 		}
-		
+
 		if ($order_id > 0) {
 			$order      = new WC_Order($order_id);
 			$cart_total = (float) $order->get_total();
@@ -640,7 +662,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		}
 
 		echo $this->description;
-		
+
 		$html_path = apply_filters('wc_azpay_creditcard_form', plugin_dir_path(__FILE__) . 'views/html-form-creditcard.php');
 
 		if (file_exists($html_path))
@@ -660,7 +682,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 		if ($cart_total >= $this->$flag)
 			return true;
-		
+
 		return false;
 	}
 
@@ -671,7 +693,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 	 * @return [type]       [description]
 	 */
 	public function parcel_qnt($cart_total, $flag) {
-		
+
 		// Max os parcels accepted by this flag
 		$flag_parcels = $flag . '_parcels';
 		$flag_parcel_min = $flag . '_parcel_min';
@@ -699,13 +721,13 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		$max_parcels = $this->$flag;
 
 		$html = '<select name="azpaylte_cc_form_parcel" id="azpaylte_cc_form_parcel">';
-        
+
         for($i = 1; $i <= $this->$parcels ; $i++) {
 
         	$value_parcel = $cart_total / $i;
         	if ($value_parcel >= $this->$parcel_min) {
         		$html .= '<option value="'.$i.'">'.$i.'x</option>';
-        	}        	
+        	}
         }
 
         $html = '</select>';
