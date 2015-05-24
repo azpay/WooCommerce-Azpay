@@ -213,6 +213,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
 		$az_pay->config_order['reference'] = $order_id;
 		$az_pay->config_order['totalAmount'] = str_replace('.', '', $total);
+		$az_pay->config_options['urlReturn'] = '';
 		
 		$az_pay->config_boleto['acquirer'] = $this->boleto_acquirer;
 		$az_pay->config_boleto['expire'] = date('Y-m-d', strtotime('+ '.$this->boleto_validate.' days'));
@@ -230,7 +231,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$az_pay->config_billing['phone'] = $customer_order->billing_phone;
 		$az_pay->config_billing['email'] = $customer_order->billing_email;
 
-		$az_pay->boleto();
+		$az_pay->boleto()->execute();
 		
 		if ($az_pay->error == true)
 			throw new Exception('Erro de comunicação, tente novamente.');		
@@ -240,12 +241,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		if ($gateway_response == null) 
 				throw new Exception("Problemas ao obter resposta sobre pagamento.");
 
-		if ($gateway_response->status != Config::$RESPONSE['GENERATED'])
-			throw new Exception("Pagamento não Autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
+		if ($gateway_response->status != Config::$STATUS['GENERATED'])
+			throw new Exception("Pagamento não autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
 
 		$customer_order->add_order_note("Aguardando pagamento do Boleto. AZPay TID: " . $gateway_response->transactionId);		
 		$customer_order->add_order_note("Link do Boleto: " . $gateway_response->processor->Boleto->details->urlBoleto);		
-		$customer_order->update_status('on-hold', 'Aguardando pagamento do boleto');
+		$customer_order->update_status('pending', 'Aguardando pagamento do boleto');
 
 		$woocommerce->cart->empty_cart();
 
@@ -253,6 +254,15 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		 * Log
 		 */
 		$azpay_log = $wpdb->prefix.'azpay_log';
+		$wpdb->insert( 
+				$azpay_log, 
+				array( 
+					'datetime' => current_time('mysql'),
+					'keylog' => 'BOLETO_XML',
+					'orderid' => $order_id,
+					'content' => json_encode($az_pay->getXml()),
+				) 
+			);
 		$wpdb->insert( 
 			$azpay_log, 
 			array( 
