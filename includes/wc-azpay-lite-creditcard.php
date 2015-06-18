@@ -514,7 +514,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 	 */
 	public function process_payment($order_id) {
 
-		global $woocommerce;
+		global $woocommerce, $wpdb;
 
 		try {
 
@@ -538,6 +538,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				throw new Exception('Quantidade inválida de parcelas.');
 
 			$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
+			$az_pay->curl_timeout = 60;
 			$az_pay->config_order['reference'] = $order_id;
 			$az_pay->config_order['totalAmount'] = $customer_order->order_total;
 			$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
@@ -564,15 +565,29 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
+			// XML to log
+			$xml_log = $az_pay;		
+			$xml_log->merchant['id'] = NULL;
+			$xml_log->merchant['key'] = NULL;
+			$xml_log->config_card_payments['cardNumber'] = preg_replace('/[0-9]/', 'X', $xml_log->config_card_payments['cardNumber']);
+			$xml_log->config_card_payments['cardSecurityCode'] = preg_replace('/[0-9]/', 'X', $xml_log->config_card_payments['cardSecurityCode']);
+
+			// Log XML
+			$azpay_log = $wpdb->prefix.'azpay_log';
+			$wpdb->insert( 
+				$azpay_log, 
+				array( 
+					'datetime' => current_time('mysql'),
+					'keylog' => 'SALE_XML',
+					'orderid' => $order_id,
+					'content' => $xml_log->sale()->getXml(),
+				) 
+			);
+
+			// Execute Sale
 			$az_pay->sale()->execute();
 
-			// Se houver erro ao executar o CURL
-			// ou não retornar 200
-			if ($az_pay->error == true)
-				throw new Exception('Erro de comunicação, tente novamente.');
-
 			$gateway_response = $az_pay->response();
-
 			if ($gateway_response == null)
 				throw new Exception("Problemas ao obter resposta sobre pagamento.");
 
@@ -583,24 +598,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$customer_order->payment_complete();
 			$woocommerce->cart->empty_cart();
 
-			/**
-			 * Log
-			 */
-			$azpay_log = $wpdb->prefix.'azpay_log';
+			// Log Response
 			$wpdb->insert( 
 				$azpay_log, 
 				array( 
 					'datetime' => current_time('mysql'),
-					'keylog' => 'CREDIT_CARD_XML',
-					'orderid' => $order_id,
-					'content' => json_encode($az_pay->getXml()),
-				) 
-			);
-			$wpdb->insert( 
-				$azpay_log, 
-				array( 
-					'datetime' => current_time('mysql'),
-					'keylog' => 'CREDIT_CARD_PAYMENT',
+					'keylog' => 'SALE_RESPONSE',
 					'orderid' => $order_id,
 					'content' => json_encode($gateway_response),
 				) 
@@ -612,11 +615,42 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			);
 
 		} catch (Exception $e) {
-			$this->add_error($e->getMessage());
-			$response = array(
-				'result'   => 'fail',
-				'redirect' => ''
-			);
+			
+			$code = $az_pay->getCurlErrorCode();
+
+		 	// cURL error (Timeout)
+			if ($e instanceof AZPay_Curl_Exception && $code == 28) {
+
+				$customer_order->update_status('processing', 'Aguardando confirmação de pagamento');
+				$woocommerce->cart->empty_cart();
+
+				$response = array(
+					'result'   => 'success',
+					'redirect' => $url = $this->get_return_url($customer_order)
+				);
+
+			} else {
+
+				$error = $az_pay->responseError();
+				$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+				$this->add_error($message);
+
+				// Log Error
+				$wpdb->insert( 
+					$azpay_log, 
+					array( 
+						'datetime' => current_time('mysql'),
+						'keylog' => 'SALE_ERROR',
+						'orderid' => $order_id,
+						'content' => json_encode($error),
+					) 
+				);
+
+				$response = array(
+					'result'   => 'fail',
+					'redirect' => ''
+				);
+			}
 		}
 
 		return $response;
