@@ -3,15 +3,12 @@
  * Plugin Name: WooCommerce AZPay Lite
  * Plugin URI: http://www.azpay.com.br
  * Description: WooCommerce AZPay is a plugin to integrate the WooCommerce with AZPay, a brazilian payment gateway
- * Author: Gabriel Guerreiro (gabrielguerreiro.com)
- * Author URI: http://www.gabrielguerreiro.com.br
- * Version: 1.2.0
+ * Author: Gabriel Guerreiro
+ * Author URI: http://www.gabrielguerreiro.com
+ * Version: 1.2.5
  * License: GNU General Public License v2.0
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
-
-ini_set( 'error_reporting', E_ALL );
-ini_set( 'display_errors', true );
 
 if (!defined('ABSPATH'))
 	exit;
@@ -33,7 +30,7 @@ class WC_AZPay_Lite {
 	 * Version of the plugin
 	 *
 	 */
-	const VERSION = '1.2.0';
+	const VERSION = '1.2.5';
 
 	/**
 	 * Instance of this class
