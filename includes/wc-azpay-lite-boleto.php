@@ -30,9 +30,9 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		foreach ($this->settings as $setting_key => $value) {
 	        $this->$setting_key = $value;
 	    }
-		
+
 		add_action('admin_notices', array($this, 'admin_notices'));
-		add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));	
+		add_action('woocommerce_thankyou_' . $this->id, array($this, 'thankyou_page'));
 
 		if (is_admin()) {
 			wp_enqueue_style('azpay', plugins_url('assets/css/style.css', plugin_dir_path(__FILE__)));
@@ -54,12 +54,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function admin_notices() {
-		if (is_admin()) {			
+		if (is_admin()) {
 			if (get_woocommerce_currency() != 'BRL')
-				add_action('admin_notices', array($this, 'currency_not_supported_message'));			
+				add_action('admin_notices', array($this, 'currency_not_supported_message'));
 		}
 	}
-	
+
 
 	/**
 	 * Admin Panel Options.
@@ -88,7 +88,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 				'title' => 'Woocommerce AZPay Lite - Boleto Bancário',
 				'type'  => 'title'
 			),
-			
+
 			'enabled' => array(
 				'title'   => 'Habilitar/Desabilitar',
 				'type'    => 'checkbox',
@@ -125,7 +125,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 				'description' => 'Chave da sua conta no AZPay',
 				'desc_tip'    => true,
 			),
-			
+
 			// Boleto Config
 			'boleto_config' => array(
 				'title' => 'Configurando Boleto Bancário',
@@ -168,12 +168,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 				'description' => 'Instrções que irão ser adicionadas ao boleto',
 				'desc_tip'    => true,
 			),
-			
+
 		);
 
 		$this->form_fields = $fields;
 	}
-	
+
 
 	public function currency_not_supported_message() {
 		echo '<div class="error"><p><strong>AZPay Lite - Boleto Bancário</strong>: Moeda não aceita</p></div>';
@@ -197,87 +197,120 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	 * @param  [type] $order_id [description]
 	 * @return [type]           [description]
 	 */
-	public function process_payment($order_id) {	
-		
-		global $woocommerce;
-		global $wpdb;
+	public function process_payment($order_id) {
 
-		$customer_order = new WC_Order($order_id);
+		global $woocommerce, $wpdb;
 
-		// Calculate total
-		$total = ($this->boleto_discount == 0) ? $customer_order->order_total : number_format($this->apply_discount($customer_order->order_total), 2, '.', '');
+		 try {
 
-		// Set new total value
-		$customer_order->set_total($total);
+		 	$customer_order = new WC_Order($order_id);
 
-		$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
-		$az_pay->config_order['reference'] = $order_id;
-		$az_pay->config_order['totalAmount'] = str_replace('.', '', $total);
-		$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
-		
-		$az_pay->config_boleto['acquirer'] = $this->boleto_acquirer;
-		$az_pay->config_boleto['expire'] = date('Y-m-d', strtotime('+ '.$this->boleto_validate.' days'));
-		$az_pay->config_boleto['nrDocument'] = str_pad($order_id, 9, '0', STR_PAD_LEFT);
-		$az_pay->config_boleto['amount'] = str_replace('.', '', $total);
-		$az_pay->config_boleto['instructions'] = $this->boleto_instructions;
+			// Calculate total
+			$total = ($this->boleto_discount == 0) ? $customer_order->order_total : number_format($this->apply_discount($customer_order->order_total), 2, '.', '');
 
-		$az_pay->config_billing['customerIdentity'] = $customer_order->user_id;
-		$az_pay->config_billing['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
-		$az_pay->config_billing['address'] = $customer_order->billing_address_1;
-		$az_pay->config_billing['city'] = $customer_order->billing_city;
-		$az_pay->config_billing['state'] = $customer_order->billing_state;
-		$az_pay->config_billing['postalCode'] = $customer_order->billing_postcode;
-		$az_pay->config_billing['country'] = $customer_order->billing_country;
-		$az_pay->config_billing['phone'] = $customer_order->billing_phone;
-		$az_pay->config_billing['email'] = $customer_order->billing_email;
+			// Set new total value
+			$customer_order->set_total($total);
 
-		$az_pay->boleto()->execute();
-		
-		if ($az_pay->error == true)
-			throw new Exception('Erro de comunicação, tente novamente.');		
+			$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
+			$az_pay->curl_timeout = 60;
+			$az_pay->config_order['reference'] = $order_id;
+			$az_pay->config_order['totalAmount'] = str_replace('.', '', $total);
+			$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
 
-		$gateway_response = $az_pay->response();
+			$az_pay->config_boleto['acquirer'] = $this->boleto_acquirer;
+			$az_pay->config_boleto['expire'] = date('Y-m-d', strtotime('+ '.$this->boleto_validate.' days'));
+			$az_pay->config_boleto['nrDocument'] = str_pad($order_id, 9, '0', STR_PAD_LEFT);
+			$az_pay->config_boleto['amount'] = str_replace('.', '', $total);
+			$az_pay->config_boleto['instructions'] = $this->boleto_instructions;
 
-		if ($gateway_response == null) 
-				throw new Exception("Problemas ao obter resposta sobre pagamento.");
+			$az_pay->config_billing['customerIdentity'] = $customer_order->user_id;
+			$az_pay->config_billing['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
+			$az_pay->config_billing['address'] = $customer_order->billing_address_1;
+			$az_pay->config_billing['city'] = $customer_order->billing_city;
+			$az_pay->config_billing['state'] = $customer_order->billing_state;
+			$az_pay->config_billing['postalCode'] = $customer_order->billing_postcode;
+			$az_pay->config_billing['country'] = $customer_order->billing_country;
+			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
+			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
-		if ($gateway_response->status != Config::$STATUS['GENERATED'])
-			throw new Exception("Pagamento não autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
+			// XML to log
+			$xml_log = $az_pay;
+			$xml_log->merchant['id'] = NULL;
+			$xml_log->merchant['key'] = NULL;
 
-		$customer_order->add_order_note("Aguardando pagamento do Boleto. AZPay TID: " . $gateway_response->transactionId);		
-		$customer_order->add_order_note("Link do Boleto: " . $gateway_response->processor->Boleto->details->urlBoleto);		
-		$customer_order->update_status('pending', 'Aguardando pagamento do boleto');
-
-		$woocommerce->cart->empty_cart();
-
-		/**
-		 * Log
-		 */
-		$azpay_log = $wpdb->prefix.'azpay_log';
-		$wpdb->insert( 
-				$azpay_log, 
-				array( 
+			// Log XML
+			$azpay_log = $wpdb->prefix.'azpay_log';
+			$wpdb->insert(
+				$azpay_log,
+				array(
 					'datetime' => current_time('mysql'),
 					'keylog' => 'BOLETO_XML',
 					'orderid' => $order_id,
-					'content' => json_encode($az_pay->getXml()),
+					'content' => $xml_log->boleto()->getXml(),
+				)
+			);
+
+			// Execute
+			$az_pay->boleto()->execute();
+
+			if ($az_pay->error == true)
+				throw new Exception('Erro de comunicação, tente novamente.');
+
+			$gateway_response = $az_pay->response();
+
+			if ($gateway_response == null)
+					throw new Exception("Problemas ao obter resposta sobre pagamento.");
+
+			if ($gateway_response->status != Config::$STATUS['GENERATED'])
+				throw new Exception("Pagamento não autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
+
+			$customer_order->add_order_note("Aguardando pagamento do Boleto. AZPay TID: " . $gateway_response->transactionId);
+			$customer_order->add_order_note("Link do Boleto: " . $gateway_response->processor->Boleto->details->urlBoleto);
+			$customer_order->update_status('pending', 'Aguardando pagamento do boleto');
+
+			$woocommerce->cart->empty_cart();
+
+			// Log Response
+			$wpdb->insert(
+				$azpay_log,
+				array(
+					'datetime' => current_time('mysql'),
+					'keylog' => 'BOLETO_PAYMENT',
+					'orderid' => $order_id,
+					'content' => json_encode($gateway_response),
+				)
+			);
+
+			// Return thankyou redirect.
+			return array(
+				'result'   => 'success',
+				'redirect' => $url = $this->get_return_url($customer_order)
+			);
+
+		 } catch (Exception $e) {
+
+		 	$error = $az_pay->responseError();
+			$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+			$this->add_error($message);
+
+			// Log Error
+			$wpdb->insert( 
+				$azpay_log, 
+				array( 
+					'datetime' => current_time('mysql'),
+					'keylog' => 'BOLETO_ERROR',
+					'orderid' => $order_id,
+					'content' => json_encode($error),
 				) 
 			);
-		$wpdb->insert( 
-			$azpay_log, 
-			array( 
-				'datetime' => current_time('mysql'),
-				'keylog' => 'BOLETO_PAYMENT',
-				'orderid' => $order_id,
-				'content' => json_encode($gateway_response),
-			) 
-		);
+
+			$response = array(
+				'result'   => 'fail',
+				'redirect' => ''
+			);
+		}
+
 		
-		// Return thankyou redirect.
-		return array(
-			'result'   => 'success',
-			'redirect' => $url = $this->get_return_url($customer_order)
-		);
 	}
 
 
@@ -287,7 +320,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	public function payment_fields() {
-		global $woocommerce;		
+		global $woocommerce;
 
 		$cart_total = 0;
 		if (defined('WC_VERSION') && version_compare(WC_VERSION, '2.1', '>=')) {
@@ -295,20 +328,20 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		} else {
 			$order_id = isset($_GET['order_id']) ? absint($_GET['order_id']) : 0;
 		}
-		
+
 		if ($order_id > 0) {
 			$order = new WC_Order($order_id);
-			$cart_total = (float) $order->get_total();		
+			$cart_total = (float) $order->get_total();
 		} elseif ($woocommerce->cart->total > 0) {
 			$cart_total = (float) $woocommerce->cart->total;
 		}
 
 		echo $this->description;
-		
+
 		$html_path = apply_filters('wc_azpay_boleto_form', plugin_dir_path(__FILE__) . 'views/html-form-boleto.php');
 
 		if (file_exists($html_path))
-			include_once($html_path);		
+			include_once($html_path);
 
 	}
 
@@ -335,8 +368,8 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
 		if ($order->status == 'on-hold')
 			echo '<div class="woocommerce-info">Clique aqui para pagar: <a href="' . $json_azpay->processor->Boleto->details->urlBoleto . '" target="_blank">Link do Boleto</a></div>';
-		
-	}	
+
+	}
 
 
 	/**
@@ -376,7 +409,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	 * @param  [type] $cart_total [Value cart]
 	 * @return [type]             [description]
 	 */
-	public function get_discount($cart_total) {		
+	public function get_discount($cart_total) {
 		return ($cart_total * $this->boleto_discount) / 100;
 	}
 
