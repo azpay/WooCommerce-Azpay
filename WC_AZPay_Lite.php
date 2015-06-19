@@ -5,7 +5,7 @@
  * Description: WooCommerce AZPay is a plugin to integrate the WooCommerce with AZPay, a brazilian payment gateway
  * Author: Gabriel Guerreiro
  * Author URI: http://www.gabrielguerreiro.com
- * Version: 1.2.5
+ * Version: 1.2.6
  * License: GNU General Public License v2.0
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -30,7 +30,7 @@ class WC_AZPay_Lite {
 	 * Version of the plugin
 	 *
 	 */
-	const VERSION = '1.2.5';
+	const VERSION = '1.2.6';
 
 	/**
 	 * Instance of this class
