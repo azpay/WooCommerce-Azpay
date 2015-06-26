@@ -428,4 +428,19 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	}
 
 
+	/**
+	 * Add an error
+	 * @param [type] $message [description]
+	 */
+	public function add_error($message) {
+		global $woocommerce;
+
+		if (function_exists('wc_add_notice')) {
+			wc_add_notice($message, 'error');
+		} else {
+			$woocommerce->add_error($message);
+		}
+	}
+
+
 }
