@@ -173,7 +173,7 @@ class WC_AZPay_Lite {
 	public function azpay_callback() {
 
 		// if URL ends with 'azpay'
-		if (preg_match('/azpay(\/|)$/', $_SERVER['REQUEST_URI'])) {
+		if (preg_match('/azpay(\/|)\?/', $_SERVER['REQUEST_URI']) && isset($_GET['TransactionID']) && !empty($_GET['TransactionID'])) {
 
 			if (
 				!isset($_POST['TID']) ||
