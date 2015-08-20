@@ -75,12 +75,12 @@ wp_enqueue_script('creditcard', plugins_url( '../assets/js/creditcard.js', plugi
                 
                 <div class="display-block">
                 	<label>Nome no Cartão</label>
-                	<input type="text" name="azpaylte_cc_form_name" value="Nome no cartão" class="azpaylte-cc-form-name" required />
+                	<input type="text" name="azpaylte_cc_form_name" value="" class="azpaylte-cc-form-name" required />
                 </div>
 
                 <div class="display-block">                	
 		            <label>Número do Cartão</label>
-		            <input type="text" name="azpaylte_cc_form_number" value="4000000000010001" class="azpaylte-cc-form-number" required />		            
+		            <input type="text" name="azpaylte_cc_form_number" value="" class="azpaylte-cc-form-number" required />		            
                 </div>
 
             </li>
@@ -89,11 +89,11 @@ wp_enqueue_script('creditcard', plugins_url( '../assets/js/creditcard.js', plugi
             <li>
                <div class="display-block">
 	               	<label>Data de Validate</label>
-	                <input type="text" name="azpaylte_cc_form_validate" value="05/2018" size="10" class="azpaylte-cc-form-validate" required />
+	                <input type="text" name="azpaylte_cc_form_validate" value="" size="10" class="azpaylte-cc-form-validate" required />
                </div>
                <div class="display-block">
 	               	<label>Código de Segurança (CVC)</label>
-                	<input type="text" name="azpaylte_cc_form_cvv" value="123" size="10" class="azpaylte-cc-form-cvv" required />
+                	<input type="text" name="azpaylte_cc_form_cvv" value="" size="10" class="azpaylte-cc-form-cvv" required />
                </div>               
             </li>
         </ul>
