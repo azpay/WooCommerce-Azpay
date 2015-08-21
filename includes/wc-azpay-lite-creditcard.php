@@ -71,7 +71,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 		// Generate the HTML For the settings form.
 		echo '<table class="azpay-form-admin">';
-			echo '<a href="http://www.azpay.com.br" target="_blank" class="ad-image"><img src="'.plugins_url('/assets/img/ad.png', plugin_dir_path( __FILE__ )).'" /></a>';
+			//echo '<a href="http://www.azpay.com.br" target="_blank" class="ad-image"><img src="'.plugins_url('/assets/img/ad.png', plugin_dir_path( __FILE__ )).'" /></a>';
 			$this->generate_settings_html();
 		echo '</table>';
 	}
@@ -566,7 +566,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
 			// XML to log
-			$xml_log = $az_pay;		
+			$xml_log = clone $az_pay;		
 			$xml_log->merchant['id'] = NULL;
 			$xml_log->merchant['key'] = NULL;
 			$xml_log->config_card_payments['cardNumber'] = preg_replace('/[0-9]/', 'X', $xml_log->config_card_payments['cardNumber']);
