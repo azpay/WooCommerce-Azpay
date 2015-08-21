@@ -2,7 +2,7 @@ jQuery(document).ready(function($){
 
     $("body").on('ajaxComplete', function(){
 
-        payment_method = $('input[name="payment_method"]').val();
+        payment_method = $('input[name="payment_method"]:checked').val();
 
         // If select CreditCard payment method, validate data
         if (payment_method == 'azpay_lite_creditcard') {
@@ -34,7 +34,7 @@ jQuery(document).ready(function($){
     $("body").on("click", "#place_order", function(e){
         e.preventDefault();
 
-        payment_method = $('input[name="payment_method"]').val();
+        payment_method = $('input[name="payment_method"]:checked').val();
 
         // If select CreditCard payment method, validate data
         if (payment_method == 'azpay_lite_creditcard') {
