@@ -31,13 +31,13 @@ jQuery(document).ready(function($){
     /**
      * OnClick to pay
      */
-    $("body").on("click", "#place_order", function(e){
-        e.preventDefault();
+    $("body").on("click", "#place_order", function(e){        
 
         payment_method = $('input[name="payment_method"]:checked').val();
 
         // If select CreditCard payment method, validate data
         if (payment_method == 'azpay_lite_creditcard') {
+            e.preventDefault();
 
             flag = $(".azpaylte-cc-form-flag:checked").val();
             validate_card = $(".azpaylte-cc-form-number").validateCreditCard({accept: [flag]});
@@ -47,7 +47,7 @@ jQuery(document).ready(function($){
             } else {
                 alert("Número do cartão inválido");
             }
-        };
+        }
 
     });
 
