@@ -70,7 +70,6 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
 		// Generate the HTML For the settings form
 		echo '<table class="azpay-form-admin">';
-			//echo '<a href="http://www.azpay.com.br" target="_blank" class="ad-image"><img src="'.plugins_url('/assets/img/ad.png', plugin_dir_path( __FILE__ )).'" /></a>';
 			$this->generate_settings_html();
 		echo '</table>';
 	}
@@ -234,7 +233,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
 			// XML to log
-			$xml_log = $az_pay;
+			$xml_log = clone $az_pay;
 			$xml_log->merchant['id'] = NULL;
 			$xml_log->merchant['key'] = NULL;
 
@@ -253,19 +252,19 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 			// Execute
 			$az_pay->boleto()->execute();
 
-			if ($az_pay->error == true)
-				throw new Exception('Erro de comunicação, tente novamente.');
-
+			// Response
 			$gateway_response = $az_pay->response();
 
-			if ($gateway_response == null)
-					throw new Exception("Problemas ao obter resposta sobre pagamento.");
+			if (empty($gateway_response))
+				throw new Exception('Problemas ao obter resposta sobre pagamento.');
 
-			if ($gateway_response->status != Config::$STATUS['GENERATED'])
-				throw new Exception("Pagamento não autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
+			if ($gateway_response->status != Config::$STATUS['GENERATED']) {
+				$error = $az_pay->responseError();
+				throw new Exception('Pagamento não Autorizado: ' . $error['error_message'], 1);
+			}
 
-			$customer_order->add_order_note("Aguardando pagamento do Boleto. AZPay TID: " . $gateway_response->transactionId);
-			$customer_order->add_order_note("Link do Boleto: " . $gateway_response->processor->Boleto->details->urlBoleto);
+			$customer_order->add_order_note('Aguardando pagamento do Boleto. AZPay TID: ' . $gateway_response->transactionId);
+			$customer_order->add_order_note('Link do Boleto: ' . $gateway_response->processor->Boleto->details->urlBoleto);
 			$customer_order->update_status('pending', 'Aguardando pagamento do boleto');
 
 			$woocommerce->cart->empty_cart();
@@ -289,8 +288,14 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 
 		 } catch (Exception $e) {
 
-		 	$error = $az_pay->responseError();
-			$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+		 	// Error = 0 from SDK
+			if ($e->getCode() == 0) {
+				$error = $az_pay->responseError();
+				$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+			} else {
+				$message = $e->getMessage();
+			}
+			
 			$this->add_error($message);
 
 			// Log Error
@@ -420,6 +425,21 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 	 */
 	public function apply_discount($cart_total) {
 		return $cart_total - $this->get_discount($cart_total);
+	}
+
+
+	/**
+	 * Add an error
+	 * @param [type] $message [description]
+	 */
+	public function add_error($message) {
+		global $woocommerce;
+
+		if (function_exists('wc_add_notice')) {
+			wc_add_notice($message, 'error');
+		} else {
+			$woocommerce->add_error($message);
+		}
 	}
 
 

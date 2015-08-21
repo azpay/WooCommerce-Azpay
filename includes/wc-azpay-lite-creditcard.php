@@ -71,7 +71,6 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 		// Generate the HTML For the settings form.
 		echo '<table class="azpay-form-admin">';
-			//echo '<a href="http://www.azpay.com.br" target="_blank" class="ad-image"><img src="'.plugins_url('/assets/img/ad.png', plugin_dir_path( __FILE__ )).'" /></a>';
 			$this->generate_settings_html();
 		echo '</table>';
 	}
@@ -589,10 +588,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 			$gateway_response = $az_pay->response();
 			if ($gateway_response == null)
-				throw new Exception("Problemas ao obter resposta sobre pagamento.");
+				throw new Exception('Problemas ao obter resposta sobre pagamento.');
 
-			if ($gateway_response->status != Config::$STATUS['APPROVED'])
-				throw new Exception("Pagamento não Autorizado - Mensagem: {$gateway_response->result->error->details} - Erro: {$gateway_response->result->error->code})");
+			if ($gateway_response->status != Config::$STATUS['APPROVED']) {
+				$error = $az_pay->responseError();
+				throw new Exception('Pagamento não Autorizado: ' . $error['error_message'], 1);
+			}
 
 			$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
 			$customer_order->payment_complete();
@@ -631,8 +632,14 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 			} else {
 
-				$error = $az_pay->responseError();
-				$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+				// Error = 0 from SDK
+				if ($e->getCode() == 0) {
+					$error = $az_pay->responseError();
+					$message = $error['error_message'] . ' (' . $error['error_code'] . ' - ' . $error['error_moreInfo'] . ')';
+				} else {
+					$message = $e->getMessage();
+				}
+				
 				$this->add_error($message);
 
 				// Log Error
