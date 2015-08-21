@@ -40,6 +40,31 @@ jQuery(document).ready(function($){
             e.preventDefault();
 
             flag = $(".azpaylte-cc-form-flag:checked").val();
+            name = $(".azpaylte-cc-form-name").val();
+            number = $(".azpaylte-cc-form-number").val();
+            cvv = $(".azpaylte-cc-form-cvv").val();
+            validate = $(".azpaylte-cc-form-validate").val();
+
+            if (name.length == 0) {
+                alert('Preencha o nome que está no cartão');
+                return;
+            }
+
+            if (number.length == 0) {
+                alert('Preencha o número do cartão');
+                return;
+            }
+
+            if (cvv.length == 0) {
+                alert('Preencha o código de segurança do cartão');
+                return;
+            }
+
+            if (validate.length == 0) {
+                alert('Preencha a da ta de expiração do cartão');
+                return;
+            }
+
             validate_card = $(".azpaylte-cc-form-number").validateCreditCard({accept: [flag]});
 
             if (validate_card.valid && validate_card.length_valid && validate_card.luhn_valid) {
