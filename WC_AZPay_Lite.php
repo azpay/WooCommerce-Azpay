@@ -108,7 +108,6 @@ class WC_AZPay_Lite {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'azpay_log';
-		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
 				  id INT(11) NOT NULL AUTO_INCREMENT,
@@ -117,7 +116,7 @@ class WC_AZPay_Lite {
 				  content TEXT NOT NULL,
 				  orderid INT(11) NOT NULL,
 				  PRIMARY KEY  (id)
-				) ENGINE=InnoDB DEFAULT CHARSET={$charset_collate} AUTO_INCREMENT=1;";
+				);";
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta($sql);
@@ -195,13 +194,17 @@ class WC_AZPay_Lite {
 			// get Order
 			$order = new WC_Order($callback['order_reference']);
 
-			// get payment method
-			$payment_method = get_post_meta( $callback['order_reference'], '_payment_method', true );
-
 			// if not exists this Order or payment method is not Boleto
 			// return false
 			if (empty($order))
 				return false;
+
+			// get payment method
+			$payment_method = get_post_meta( $callback['order_reference'], '_payment_method', true );
+			$payment_method_config = get_option( 'woocommerce_'.$payment_method.'_settings' );
+			
+			if (!isset($payment_method_config['auto_capture']) || empty($payment_method_config['auto_capture']) || $payment_method_config['auto_capture'] == 'no')
+				return false;						
 
 			// Changes by status
 			switch ($callback['status']) {

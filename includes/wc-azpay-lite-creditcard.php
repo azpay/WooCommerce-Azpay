@@ -126,6 +126,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Chave da sua conta no AZPay',
 				'desc_tip'    => true,
 			),
+			'auto_capture' => array(
+				'title'       => 'Captura Automática',
+				'type'        => 'checkbox',
+				'default'     => 'no',
+				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',				
+			),
 
 			// Creditcard
 			'creditcard_title' => array(
