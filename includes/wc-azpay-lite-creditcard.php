@@ -132,13 +132,99 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'default'     => 'no',
 				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',				
 			),
-
+			'orderstatus_title' => array(
+				'title' => 'Configurando troca de status dos pedidos conforme retorno AZPay',
+				'type'  => 'title'
+			),
+			'azpaystatus_approved' => array(
+				'title'       => 'Transação aprovada',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna aprovada',
+				'default'     => 'completed',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
+			'azpaystatus_capturing' => array(
+				'title'       => 'Transação capturada / aguardando pagamento',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna capturada / aguardando pagamento',
+				'default'     => 'processing',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
+			'azpaystatus_cancelled' => array(
+				'title'       => 'Transação cancelada',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna cancelada',
+				'default'     => 'cancelled',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
+			'azpaystatus_unauthenticated' => array(
+				'title'       => 'Cartão não autenticado',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna cartão não autenticado',
+				'default'     => 'failed',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
+			'azpaystatus_unauthorized' => array(
+				'title'       => 'Transação não autorizada pela operadora',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna transação não autorizada pela operadora',
+				'default'     => 'failed',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
+			'azpaystatus_unapproved' => array(
+				'title'       => 'Transação não capturada',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Quando transação feita pelo azpay retorna transação não capturada',
+				'default'     => 'on-hold',
+				'options'     => array(
+					'completed' => 'Completado',
+					'processing' => 'Processando',
+					'cancelled' => 'Cancelado',
+					'failed' => 'Falho',
+					'on-hold' => 'Aguardando',
+				)
+			),
 			// Creditcard
 			'creditcard_title' => array(
 				'title' => 'Configurando bandeiras e operadoras',
 				'type'  => 'title'
 			),
-
 			// Visa
 			'visa_title' => array(
 				'title' => 'Visa',

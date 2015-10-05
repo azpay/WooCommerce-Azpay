@@ -210,27 +210,27 @@ class WC_AZPay_Lite {
 			switch ($callback['status']) {
 
 				case Config::$STATUS['APPROVED']:
-					$order->update_status('completed', 'Pagamento confirmado. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_approved'], 'Pagamento confirmado. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['CAPTURING']:
-					$order->update_status('processing', 'Aguardando confirmação de pagamento. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_capturing'], 'Aguardando confirmação de pagamento. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['CANCELLED']:
-					$order->update_status('cancelled', 'Pagamento cancelado. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_cancelled'], 'Pagamento cancelado. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['UNAUTHENTICATED']:
-					$order->update_status('failed', 'Falha no pagamento, cartão não autenticado. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_unauthenticated'], 'Falha no pagamento, cartão não autenticado. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['UNAUTHORIZED']:
-					$order->update_status('failed', 'Falha no pagamento, transação não autorizada pela operadora. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_unauthorized'], 'Falha no pagamento, transação não autorizada pela operadora. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['UNAPPROVED']:
-					$order->update_status('on-hold', 'Transação não capturada, tente novamente pelo painel do AZPay. AZPay TID: ' . $callback['tid']);
+					$order->update_status($payment_method_config['azpaystatus_unapproved'], 'Transação não capturada, tente novamente pelo painel do AZPay. AZPay TID: ' . $callback['tid']);
 					break;
 			}
 
