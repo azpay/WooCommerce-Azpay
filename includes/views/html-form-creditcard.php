@@ -30,13 +30,13 @@ wp_enqueue_script('creditcard', plugins_url( '../assets/js/creditcard.js', plugi
 
         		<?php if ($this->diners_acquirer != 0 && $this->validate_parcel($cart_total, 'diners')): ?>
         			<div class="input-flag">
-        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_diners" value="diners" data-mask="9999 9999 9999 9999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'diners');?>"><img src="<?php echo plugins_url('../assets/img/diners.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
+        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_diners" value="diners" data-mask="9999 9999 9999 99" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'diners');?>"><img src="<?php echo plugins_url('../assets/img/diners.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
         			</div>
         		<?php endif ?>
 
         		<?php if ($this->amex_acquirer != 0 && $this->validate_parcel($cart_total, 'amex')): ?>
         			<div class="input-flag">
-        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_amex" value="amex" data-mask="9999 9999 9999 9999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'amex');?>"><img src="<?php echo plugins_url('../assets/img/amex.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
+        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_amex" value="amex" data-mask="9999 9999 9999 999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'amex');?>"><img src="<?php echo plugins_url('../assets/img/amex.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
         			</div>
         		<?php endif ?>
 
@@ -48,7 +48,7 @@ wp_enqueue_script('creditcard', plugins_url( '../assets/js/creditcard.js', plugi
 
         		<?php if ($this->aura_acquirer != 0 && $this->validate_parcel($cart_total, 'aura')): ?>
         			<div class="input-flag">
-        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_aura" value="aura" data-mask="9999 9999 9999 9999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'aura');?>"><img src="<?php echo plugins_url('../assets/img/aura.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
+        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_aura" value="aura" data-mask="9999 9999 9999 9999999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'aura');?>"><img src="<?php echo plugins_url('../assets/img/aura.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
         			</div>
         		<?php endif ?>
 
