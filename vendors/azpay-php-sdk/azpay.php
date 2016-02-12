@@ -200,6 +200,30 @@ class AZPay {
 		'customField' 	=> ''
 	);
 
+	/**
+	 * Fraud Details
+	 *
+	 * @var array
+	 */
+	public $config_fraud_data = array(
+		'operator' 		=> 'clearsale',
+		'method' 		=> 'start',
+		'costumerIP' 	=> '',
+		'name' 			=> '',
+		'document' 		=> '',
+		'phonePrefix' 	=> '',
+		'phoneNumber' 	=> '',
+		'address' 		=> '',
+		'addressNumber' => '',
+		'address2' 		=> '',
+		'city' 			=> '',
+		'state' 		=> '',
+		'postalCode' 	=> '',
+		'country'		=> 'BR',
+		'email'			=> '',
+		'items'			=> array()
+	);
+
 
 	/**
 	 * Reponse
@@ -466,7 +490,7 @@ class AZPay {
 
 		$requests = new XML_Requests();
 
-		$requests->authorizeXml($this->merchant, $this->config_order, $this->config_card_payments, $this->config_billing, $this->config_options);
+		$requests->authorizeXml($this->merchant, $this->config_order, $this->config_card_payments, $this->config_billing, $this->config_options, $this->config_fraud_data);
 		$this->xml = $requests->output();
 
 		return $this;

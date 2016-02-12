@@ -128,6 +128,45 @@ class XML_Requests {
 		$this->xml_writer->endElement();
 	}
 
+	/**
+	 * Fraud node
+	 *
+	 * @param  array $fraud_data [Fraud data]
+	 * @return void
+	 */
+	private function fraudNode($fraud_data) {
+
+		$this->xml_writer->startElement('fraudData');
+
+			$this->xml_writer->writeElement('operator', $fraud_data['operator']);
+			$this->xml_writer->writeElement('method', $fraud_data['method']);
+			$this->xml_writer->writeElement('costumerIP', $fraud_data['costumerIP']);
+			$this->xml_writer->writeElement('name', $fraud_data['name']);
+			$this->xml_writer->writeElement('document', $fraud_data['document']);
+			$this->xml_writer->writeElement('phonePrefix', $fraud_data['phonePrefix']);
+			$this->xml_writer->writeElement('phoneNumber', Utils::formatNumber($fraud_data['phoneNumber']));
+			$this->xml_writer->writeElement('address', $fraud_data['address']);
+			$this->xml_writer->writeElement('addressNumber', $fraud_data['addressNumber']);
+			$this->xml_writer->writeElement('address2', $fraud_data['address2']);
+			$this->xml_writer->writeElement('city', $fraud_data['city']);
+			$this->xml_writer->writeElement('state', $fraud_data['state']);
+			$this->xml_writer->writeElement('postalCode',  Utils::formatNumber($fraud_data['postalCode']));
+			$this->xml_writer->writeElement('country', $fraud_data['country']);
+			$this->xml_writer->writeElement('email', $fraud_data['email']);
+			
+			$this->xml_writer->startElement('itens');
+			foreach ($fraud_data['items'] as $item) {
+				$this->xml_writer->startElement('item');
+					$this->xml_writer->writeElement('productName', $item['productname']);
+					$this->xml_writer->writeElement('quantity', $item['productqty']);
+					$this->xml_writer->writeElement('price', $item['productvalue']);
+				$this->xml_writer->endElement();
+			}
+			$this->xml_writer->endElement();
+
+		$this->xml_writer->endElement();
+	}
+
 
 
 	/**
@@ -140,7 +179,7 @@ class XML_Requests {
 	 * @param  array $options    [Options data]
 	 * @return void
 	 */
-	public function authorizeXml($merchant, $order, $payments, $billing, $options) {
+	public function authorizeXml($merchant, $order, $payments, $billing, $options, $fraud) {
 
 		$this->header();
 
@@ -156,6 +195,7 @@ class XML_Requests {
 
 			$this->xml_writer->writeElement('urlReturn', $options['urlReturn']);
 			$this->xml_writer->writeElement('fraud', $options['fraud']);
+			$this->fraudNode($fraud);
 			$this->xml_writer->writeElement('customField', $options['customField']);
 
 		$this->xml_writer->endElement();

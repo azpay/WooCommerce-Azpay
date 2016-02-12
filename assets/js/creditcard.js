@@ -2,18 +2,18 @@ jQuery(document).ready(function($){
 
     $("body").on('ajaxComplete', function(){
 
+        $(".azpaylte-cc-form-name").val('');
+        $(".azpaylte-cc-form-number").val('');
+        $(".azpaylte-cc-form-validate").val('');
+        $(".azpaylte-cc-form-cvv").val('');
+
         payment_method = $('input[name="payment_method"]:checked').val();
 
-        // If select CreditCard payment method, validate data
-        if (payment_method == 'azpay_lite_creditcard') {
-
-            $(".azpaylte-cc-form-flag").eq(0).prop("checked", true);
-            $(".azpaylte-cc-form-validate").mask("99/9999");
-            numberMask();
-            mountSelect();
-            cvvMask();
-
-        };
+        $(".azpaylte-cc-form-flag").eq(0).prop("checked", true);
+        $(".azpaylte-cc-form-validate").mask("99/9999");
+        numberMask();
+        mountSelect();
+        cvvMask();
 
     });
 
@@ -61,7 +61,7 @@ jQuery(document).ready(function($){
             }
 
             if (validate.length == 0) {
-                alert('Preencha a da ta de expiração do cartão');
+                alert('Preencha a data de expiração do cartão');
                 return;
             }
 

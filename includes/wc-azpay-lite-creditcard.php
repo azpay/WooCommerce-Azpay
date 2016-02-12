@@ -126,6 +126,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Chave da sua conta no AZPay',
 				'desc_tip'    => true,
 			),
+			'clearsale' => array(
+				'title'       => 'Clearsale',
+				'type'        => 'checkbox',
+				'default'     => 'no',
+				'description' => 'Válido apenas para transações de autorizações e venda direta',				
+			),
 			'auto_capture' => array(
 				'title'       => 'Captura Automática',
 				'type'        => 'checkbox',
@@ -598,6 +604,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		$this->form_fields = $fields;
 	}
 
+
 	/**
 	 * Process that use AZPay SDK
 	 * @param  [type] $order_id [description]
@@ -656,6 +663,38 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
+			$payment_method_config = get_option( 'woocommerce_azpay_lite_creditcard_settings' );
+			if (!isset($payment_method_config['clearsale']) || empty($payment_method_config['clearsale']) || $payment_method_config['clearsale'] == 'no') {
+
+			} else {
+				$az_pay->config_options['fraud'] = 'true';
+				$az_pay->config_fraud_data['costumerIP'] = $_SERVER['REMOTE_ADDR'];
+				$az_pay->config_fraud_data['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
+				$az_pay->config_fraud_data['document'] = '';
+				$az_pay->config_fraud_data['phonePrefix'] = '';
+				$az_pay->config_fraud_data['phoneNumber'] = $customer_order->billing_phone;
+				$az_pay->config_fraud_data['address'] = $customer_order->billing_address_1;
+				$az_pay->config_fraud_data['addressNumber'] = '';
+				$az_pay->config_fraud_data['address2'] = $customer_order->billing_address_2;
+				$az_pay->config_fraud_data['city'] = $customer_order->billing_city;
+				$az_pay->config_fraud_data['state'] = $customer_order->billing_state;
+				$az_pay->config_fraud_data['postalCode'] = $customer_order->billing_postcode;
+				$az_pay->config_fraud_data['email'] = $customer_order->billing_email;
+
+				$order_items = $customer_order->get_items();
+				$order_items_fraud = array();
+				foreach ($order_items as $item) {
+					$item = array(
+						'productname' => $item['name'],
+						'productqty' => $item['qty'],
+						'productvalue' => $item['line_subtotal']
+					);
+					array_push($order_items_fraud, $item);
+				}
+				$az_pay->config_fraud_data['items'] = $order_items_fraud;
+
+			}
+
 			// XML to log
 			$xml_log = clone $az_pay;		
 			$xml_log->merchant['id'] = NULL;
@@ -675,20 +714,40 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				) 
 			);
 
-			// Execute Sale
-			$az_pay->sale()->execute();
+			if (!isset($payment_method_config['clearsale']) || empty($payment_method_config['clearsale']) || $payment_method_config['clearsale'] == 'no') {
+				// Execute Sale
+				$az_pay->sale()->execute();
 
-			$gateway_response = $az_pay->response();
-			if ($gateway_response == null)
-				throw new Exception('Problemas ao obter resposta sobre pagamento.');
+				$gateway_response = $az_pay->response();
 
-			if ($gateway_response->status != Config::$STATUS['APPROVED']) {
-				$error = $az_pay->responseError();
-				throw new Exception('Pagamento não Autorizado: ' . $error['error_message'], 1);
+				if ($gateway_response == null)
+					throw new Exception('Problemas ao obter resposta sobre pagamento.');
+
+				if ($gateway_response->status != Config::$STATUS['APPROVED']) {
+					$error = $az_pay->responseError();
+					throw new Exception('Pagamento não Autorizado: ' . $error['error_message'], 1);
+				}
+
+				$customer_order->payment_complete();
+				$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
+				
+			} else {
+				// Execute authorize
+				$az_pay->authorize()->execute();
+
+				$gateway_response = $az_pay->response();
+
+				if ($gateway_response == null)
+					throw new Exception('Problemas ao obter resposta sobre pagamento.');
+				
+				if ($gateway_response->status != Config::$STATUS['APPROVED'] && $gateway_response->status != Config::$STATUS['AUTHORIZED'])
+					throw new Exception(Config::$STATUS_MESSAGES[$gateway_response->status]['title']);
+
+				$customer_order->add_order_note("Pagamento autorizado pela operadora. AZPay TID: {$gateway_response->transactionId}");
+				$customer_order->payment_complete();
+				$customer_order->update_status('on-hold', 'Aguardando captura azpay');
 			}
 
-			$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
-			$customer_order->payment_complete();
 			$woocommerce->cart->empty_cart();
 
 			// Log Response
