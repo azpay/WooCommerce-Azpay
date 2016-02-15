@@ -130,7 +130,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'title'       => 'Clearsale',
 				'type'        => 'checkbox',
 				'default'     => 'no',
-				'description' => 'Válido apenas para transações de autorizações e venda direta',				
+				'description' => 'Solução antifraude ClearSale (Contatar equipe técnica AZPay para utilizar)',				
 			),
 			'auto_capture' => array(
 				'title'       => 'Captura Automática',
