@@ -670,11 +670,11 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				$az_pay->config_options['fraud'] = 'true';
 				$az_pay->config_fraud_data['costumerIP'] = $_SERVER['REMOTE_ADDR'];
 				$az_pay->config_fraud_data['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
-				$az_pay->config_fraud_data['document'] = '';
-				$az_pay->config_fraud_data['phonePrefix'] = '';
+				$az_pay->config_fraud_data['document'] = $customer_order->billing_cpf;
+				$az_pay->config_fraud_data['phonePrefix'] = substr($customer_order->billing_phone, 0, 4);
 				$az_pay->config_fraud_data['phoneNumber'] = $customer_order->billing_phone;
 				$az_pay->config_fraud_data['address'] = $customer_order->billing_address_1;
-				$az_pay->config_fraud_data['addressNumber'] = '';
+				$az_pay->config_fraud_data['addressNumber'] = $customer_order->billing_number;
 				$az_pay->config_fraud_data['address2'] = $customer_order->billing_address_2;
 				$az_pay->config_fraud_data['city'] = $customer_order->billing_city;
 				$az_pay->config_fraud_data['state'] = $customer_order->billing_state;

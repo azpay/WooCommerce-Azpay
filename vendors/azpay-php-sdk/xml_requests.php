@@ -142,8 +142,8 @@ class XML_Requests {
 			$this->xml_writer->writeElement('method', $fraud_data['method']);
 			$this->xml_writer->writeElement('costumerIP', $fraud_data['costumerIP']);
 			$this->xml_writer->writeElement('name', $fraud_data['name']);
-			$this->xml_writer->writeElement('document', $fraud_data['document']);
-			$this->xml_writer->writeElement('phonePrefix', $fraud_data['phonePrefix']);
+			$this->xml_writer->writeElement('document', Utils::formatNumber($fraud_data['document']));
+			$this->xml_writer->writeElement('phonePrefix', Utils::formatNumber($fraud_data['phonePrefix']));
 			$this->xml_writer->writeElement('phoneNumber', Utils::formatNumber($fraud_data['phoneNumber']));
 			$this->xml_writer->writeElement('address', $fraud_data['address']);
 			$this->xml_writer->writeElement('addressNumber', $fraud_data['addressNumber']);
