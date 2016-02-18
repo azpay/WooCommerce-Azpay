@@ -732,6 +732,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
 				
 			} else {
+
 				// Execute authorize
 				$az_pay->authorize()->execute();
 
@@ -740,9 +741,10 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				if ($gateway_response == null)
 					throw new Exception('Problemas ao obter resposta sobre pagamento.');
 				
-				if ($gateway_response->status != Config::$STATUS['APPROVED'] && $gateway_response->status != Config::$STATUS['AUTHORIZED'])
-					throw new Exception(Config::$STATUS_MESSAGES[$gateway_response->status]['title']);
-
+				if ($gateway_response->status != Config::$STATUS['APPROVED'] || $gateway_response->status != Config::$STATUS['AUTHORIZED']) {
+					throw new Exception(Config::$STATUS_MESSAGES[(int)$gateway_response->status]['title'], 1);
+				}
+				
 				$customer_order->add_order_note("Pagamento autorizado pela operadora. AZPay TID: {$gateway_response->transactionId}");
 				$customer_order->payment_complete();
 				$customer_order->update_status('on-hold', 'Aguardando captura azpay');
