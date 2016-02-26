@@ -741,7 +741,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				if ($gateway_response == null)
 					throw new Exception('Problemas ao obter resposta sobre pagamento.');
 				
-				if ($gateway_response->status != Config::$STATUS['APPROVED'] || $gateway_response->status != Config::$STATUS['AUTHORIZED']) {
+				if ($gateway_response->status != Config::$STATUS['AUTHORIZED']) {
 					throw new Exception(Config::$STATUS_MESSAGES[(int)$gateway_response->status]['title'], 1);
 				}
 				
