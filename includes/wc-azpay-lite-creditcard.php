@@ -130,13 +130,13 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'title'       => 'Clearsale',
 				'type'        => 'checkbox',
 				'default'     => 'no',
-				'description' => 'Solução antifraude ClearSale (Contatar equipe técnica AZPay para utilizar)',				
+				'description' => 'Solução antifraude ClearSale (Contatar equipe técnica AZPay para utilizar)',
 			),
 			'auto_capture' => array(
 				'title'       => 'Captura Automática',
 				'type'        => 'checkbox',
 				'default'     => 'no',
-				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',				
+				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',
 			),
 			'orderstatus_title' => array(
 				'title' => 'Configurando troca de status dos pedidos conforme retorno AZPay',
@@ -250,6 +250,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'4' => 'Redecard - Komerci Integrado',
 					'6' => 'Elavon',
 					'20' => 'Stone',
+					'24' => 'Global Payments',
+					'25' => 'BIN',
 				)
 			),
 			'visa_parcel_min' => array(
@@ -299,6 +301,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'4' => 'Redecard - Komerci Integrado',
 					'6' => 'Elavon',
 					'20' => 'Stone',
+					'24' => 'Global Payments',
+					'25' => 'BIN',
 				)
 			),
 			'mastercard_parcel_min' => array(
@@ -696,7 +700,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			}
 
 			// XML to log
-			$xml_log = clone $az_pay;		
+			$xml_log = clone $az_pay;
 			$xml_log->merchant['id'] = NULL;
 			$xml_log->merchant['key'] = NULL;
 			$xml_log->config_card_payments['cardNumber'] = preg_replace('/[0-9]/', 'X', $xml_log->config_card_payments['cardNumber']);
@@ -704,14 +708,14 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 			// Log XML
 			$azpay_log = $wpdb->prefix.'azpay_log';
-			$wpdb->insert( 
-				$azpay_log, 
-				array( 
+			$wpdb->insert(
+				$azpay_log,
+				array(
 					'datetime' => current_time('mysql'),
 					'keylog' => 'SALE_XML',
 					'orderid' => $order_id,
 					'content' => $xml_log->sale()->getXml(),
-				) 
+				)
 			);
 
 			if (!isset($payment_method_config['clearsale']) || empty($payment_method_config['clearsale']) || $payment_method_config['clearsale'] == 'no') {
@@ -730,7 +734,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 				$customer_order->payment_complete();
 				$customer_order->add_order_note("Pagamento relizado com sucesso. AZPay TID: {$gateway_response->transactionId}");
-				
+
 			} else {
 
 				// Execute authorize
@@ -740,11 +744,11 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 
 				if ($gateway_response == null)
 					throw new Exception('Problemas ao obter resposta sobre pagamento.');
-				
+
 				if ($gateway_response->status != Config::$STATUS['AUTHORIZED']) {
 					throw new Exception(Config::$STATUS_MESSAGES[(int)$gateway_response->status]['title'], 1);
 				}
-				
+
 				$customer_order->add_order_note("Pagamento autorizado pela operadora. AZPay TID: {$gateway_response->transactionId}");
 				$customer_order->payment_complete();
 				$customer_order->update_status('on-hold', 'Aguardando captura azpay');
@@ -753,14 +757,14 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$woocommerce->cart->empty_cart();
 
 			// Log Response
-			$wpdb->insert( 
-				$azpay_log, 
-				array( 
+			$wpdb->insert(
+				$azpay_log,
+				array(
 					'datetime' => current_time('mysql'),
 					'keylog' => 'SALE_RESPONSE',
 					'orderid' => $order_id,
 					'content' => json_encode($gateway_response),
-				) 
+				)
 			);
 
 			$response = array(
@@ -769,7 +773,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			);
 
 		} catch (Exception $e) {
-			
+
 			$code = $az_pay->getCurlErrorCode();
 
 		 	// cURL error (Timeout)
@@ -792,18 +796,18 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				} else {
 					$message = $e->getMessage();
 				}
-				
+
 				$this->add_error($message);
 
 				// Log Error
-				$wpdb->insert( 
-					$azpay_log, 
-					array( 
+				$wpdb->insert(
+					$azpay_log,
+					array(
 						'datetime' => current_time('mysql'),
 						'keylog' => 'SALE_ERROR',
 						'orderid' => $order_id,
 						'content' => json_encode($error),
-					) 
+					)
 				);
 
 				$response = array(

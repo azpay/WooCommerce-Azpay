@@ -202,9 +202,9 @@ class WC_AZPay_Lite {
 			// get payment method
 			$payment_method = get_post_meta( $callback['order_reference'], '_payment_method', true );
 			$payment_method_config = get_option( 'woocommerce_'.$payment_method.'_settings' );
-			
+
 			if (!isset($payment_method_config['auto_capture']) || empty($payment_method_config['auto_capture']) || $payment_method_config['auto_capture'] == 'no')
-				return false;						
+				return false;
 
 			// Changes by status
 			switch ($callback['status']) {
