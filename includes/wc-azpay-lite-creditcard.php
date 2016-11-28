@@ -252,6 +252,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'20' => 'Stone',
 					'24' => 'Global Payments',
 					'25' => 'BIN',
+					'22' => 'GETNET',
 				)
 			),
 			'visa_parcel_min' => array(
@@ -303,6 +304,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'20' => 'Stone',
 					'24' => 'Global Payments',
 					'25' => 'BIN',
+					'22' => 'GETNET',
 				)
 			),
 			'mastercard_parcel_min' => array(
