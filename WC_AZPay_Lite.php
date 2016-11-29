@@ -46,6 +46,7 @@ class WC_AZPay_Lite {
 			include_once(plugin_dir_path(__FILE__) . './vendors/azpay-php-sdk/azpay.php');
 			include_once 'includes/wc-azpay-lite-creditcard.php';
 			include_once 'includes/wc-azpay-lite-boleto.php';
+			include_once 'includes/wc-azpay-lite-pagcoin.php';
 
 			add_filter('woocommerce_payment_gateways', array($this, 'load_gateway'));
 
@@ -88,6 +89,7 @@ class WC_AZPay_Lite {
 	public function load_gateway($current_gateways) {
 		$current_gateways[] = 'WC_AZPay_Lite_Creditcard';
 		$current_gateways[] = 'WC_AZPay_Lite_Boleto';
+		$current_gateways[] = 'WC_AZPay_Lite_Pagcoin';
 		return $current_gateways;
 	}
 
