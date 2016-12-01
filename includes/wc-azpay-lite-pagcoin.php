@@ -64,6 +64,18 @@ class WC_AZPay_Lite_Pagcoin extends WC_Payment_Gateway {
 				'description' => 'Descrição da forma de pagamento que aparece para o usuário',
 				'desc_tip'    => true,
 			),
+			'merchant_id' => array(
+				'title'       => 'Merchant ID',
+				'type'        => 'text',
+				'description' => 'ID da sua conta no AZPay',
+				'desc_tip'    => true,
+			),
+			'merchant_key' => array(
+				'title'       => 'Merchant Key',
+				'type'        => 'text',
+				'description' => 'Chave da sua conta no AZPay',
+				'desc_tip'    => true,
+			),
 
     );
 
@@ -114,7 +126,46 @@ class WC_AZPay_Lite_Pagcoin extends WC_Payment_Gateway {
 	 */
 	public function process_payment($order_id) {
 
-    var_dump($order_id);exit;
+		global $woocommerce;
+
+		try {
+
+			$customer_order = new WC_Order($order_id);
+
+			$az_pay = new AZPay($this->merchant_id, $this->merchant_key);
+
+			$az_pay->curl_timeout = 60;
+
+			$az_pay->config_order['reference'] = $order_id;
+			$az_pay->config_order['totalAmount'] = $customer_order->order_total;
+
+			$az_pay->config_pagcoin_payments['amount'] = $customer_order->order_total;
+
+			$az_pay->config_billing['customerIdentity'] = $customer_order->user_id;
+			$az_pay->config_billing['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
+			$az_pay->config_billing['address'] = $customer_order->billing_address_1;
+			$az_pay->config_billing['city'] = $customer_order->billing_city;
+			$az_pay->config_billing['state'] = $customer_order->billing_state;
+			$az_pay->config_billing['postalCode'] = $customer_order->billing_postcode;
+			$az_pay->config_billing['country'] = $customer_order->billing_country;
+			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
+			$az_pay->config_billing['email'] = $customer_order->billing_email;
+
+			$az_pay->config_options['urlReturn'] = esc_url( home_url( '/azpay' ) );
+
+			$az_pay->pagcoin()->execute();
+
+			$gateway_response = $az_pay->response();
+
+			print_r($gateway_response);exit;
+
+		} catch (Exception $e) {
+
+			$error = $az_pay->responseError();
+			throw new Exception('Erro ao processar pagamento: ' . $error['error_message'], 1);
+			
+		}
+
 
   }
 

@@ -153,7 +153,7 @@ class XML_Requests {
 			$this->xml_writer->writeElement('postalCode',  Utils::formatNumber($fraud_data['postalCode']));
 			$this->xml_writer->writeElement('country', $fraud_data['country']);
 			$this->xml_writer->writeElement('email', $fraud_data['email']);
-			
+
 			$this->xml_writer->startElement('itens');
 			foreach ($fraud_data['items'] as $item) {
 				$this->xml_writer->startElement('item');
@@ -665,6 +665,56 @@ class XML_Requests {
 		$this->xml_writer->endElement();
 	}
 
+
+
+	/**
+	 * Pagcoin XML
+	 *
+	 * @param  array $merchant [Merchant data]
+	 * @param  array $order    [Order data]
+	 * @param  array $payment  [Payment data]
+	 * @param  array $billing  [Billing data]
+	 * @param  array $options  [Options data]
+	 * @return void
+	 */
+	public function pagcoinXml($merchant, $order, $payment, $billing, $options) {
+
+		$this->header();
+
+		$this->verificationNode($merchant['id'], $merchant['key']);
+
+		$this->xml_writer->startElement('cryptocurrency');
+
+			$this->orderNode($order);
+
+			$this->paymentPagcoinNode($payment);
+
+			$this->billingNode($billing);
+
+			$this->xml_writer->writeElement('urlReturn', $options['urlReturn']);
+
+		$this->xml_writer->endElement();
+
+	}
+
+	/**
+	 * Pagcoin payment node
+	 *
+	 * @param  array $payment [Payment data]
+	 * @return void
+	 */
+	private function paymentPagcoinNode($payment) {
+
+		$this->xml_writer->startElement('payment');
+
+			$this->xml_writer->writeElement('acquirer', $payment['acquirer']);
+			$this->xml_writer->writeElement('amount', Utils::formatNumber($payment['amount']));
+			$this->xml_writer->writeElement('currency', Config::$CURRENCIES['BRL']);
+			$this->xml_writer->writeElement('country', $payment['country']);
+
+		$this->xml_writer->endElement();
+
+	}
 
 
 

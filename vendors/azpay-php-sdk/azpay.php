@@ -99,6 +99,18 @@ class AZPay {
 		'tokenCard' 		=> ''
 	);
 
+	/**
+	 * Pagcoin data
+	 *
+	 * @var array
+	 */
+	public $config_pagcoin_payments = array(
+		'acquirer' 		=> '23',
+		'amount' 		=> '0000',
+		'currency' 		=> '986',
+		'country' 		=> 'BRA'
+	);
+
 
 	/**
 	 * Boleto configuration
@@ -309,9 +321,11 @@ class AZPay {
 	 */
 	public function execute() {
 
+		print_r($this->xml);
+
 		// Reset error flag
 		$this->error = false;
-		
+
 		// Init cURL
 		$ch = curl_init();
 
@@ -370,7 +384,7 @@ class AZPay {
 	/**
 	 * Get AZPay errors response
 	 * use inside Catch
-	 * 
+	 *
 	 *
 	 * @return array [Data from errors]
 	 */
@@ -421,7 +435,7 @@ class AZPay {
 
 	/**
 	 * Get cURL response
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getCurlResponse() {
@@ -431,7 +445,7 @@ class AZPay {
 
 	/**
 	 * Get cURL response meta
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getCurlResponseMeta() {
@@ -441,7 +455,7 @@ class AZPay {
 
 	/**
 	 * Get cURL Error
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getCurlError() {
@@ -451,7 +465,7 @@ class AZPay {
 
 	/**
 	 * Get cURL Error Code
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getCurlErrorCode() {
@@ -464,7 +478,7 @@ class AZPay {
 	 * user before any Request
 	 *
 	 * eg: $azpay->ignoreExceptions()->sale()
-	 * 
+	 *
 	 * @return this
 	 */
 	public function ignoreExceptions() {
@@ -725,6 +739,29 @@ class AZPay {
 		$requests = new XML_Requests();
 
 		$requests->onlineDebitXml($this->merchant, $this->config_order, $this->config_online_debit, $this->config_billing, $this->config_options);
+		$this->xml = $requests->output();
+
+		return $this;
+	}
+
+
+	/**
+	 * Pagcoin
+	 *
+	 * Require:
+	 * 	- $merchant
+	 * 	- $config_order
+	 * 	- $config_pagcoin_payments
+	 * 	- $config_billing
+	 * 	- $config_options
+	 *
+	 * @return this
+	 */
+	public function pagcoin() {
+
+		$requests = new XML_Requests();
+
+		$requests->pagcoinXml($this->merchant, $this->config_order, $this->config_pagcoin_payments, $this->config_billing, $this->config_options);
 		$this->xml = $requests->output();
 
 		return $this;
