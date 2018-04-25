@@ -10,7 +10,7 @@ jQuery(document).ready(function($){
         payment_method = $('input[name="payment_method"]:checked').val();
 
         $(".azpaylte-cc-form-flag").eq(0).prop("checked", true);
-        $(".azpaylte-cc-form-validate").mask("99/9999");
+        $(".azpaylte-cc-form-validate").mask("99/99");
         numberMask();
         mountSelect();
         cvvMask();

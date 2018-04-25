@@ -603,7 +603,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_card_payments['cardHolder'] = $name;
 			$az_pay->config_card_payments['cardNumber'] = $number;
 			$az_pay->config_card_payments['cardSecurityCode'] = $cvv;
-			$az_pay->config_card_payments['cardExpirationDate'] = $validate[1].$validate[0];
+			$az_pay->config_card_payments['cardExpirationDate'] = '20'.$validate[1].$validate[0];
 
 			$az_pay->config_billing['customerIdentity'] = $customer_order->user_id;
 			$az_pay->config_billing['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
