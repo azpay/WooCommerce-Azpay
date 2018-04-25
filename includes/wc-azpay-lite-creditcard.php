@@ -23,8 +23,19 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 		$this->id           = 'azpay_lite_creditcard';
 		$this->icon         = null;
 		$this->has_fields   = true;
-		$this->method_title = 'AZPay Lite - Cartão de Crédito';
+		$this->method_title = 'AZPay - Crédito';
 		$this->title = 'Cartão de Crédito';
+
+        $this->supports = array(
+            'products', 
+            'subscriptions',
+            'subscription_cancellation', 
+            'subscription_suspension', 
+            'subscription_reactivation',
+            'subscription_amount_changes',
+            'subscription_date_changes',
+            'subscription_payment_method_change'
+        );
 
 		$this->init_form_fields();
 		$this->init_settings();
@@ -113,6 +124,12 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			'config' => array(
 				'title' => 'Configurando AZPay',
 				'type'  => 'title'
+            ),
+            'in_production' => array(
+				'title'       => 'Em Produção',
+				'type'        => 'checkbox',
+				'default'     => 'no',
+				'description' => 'Utilizar o ambiente de produção da AZPay. Se desmarcada, será utilizado o ambiente de homologação da AZPay.',
 			),
 			'merchant_id' => array(
 				'title'       => 'Merchant ID',
@@ -125,12 +142,19 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'type'        => 'text',
 				'description' => 'Chave da sua conta no AZPay',
 				'desc_tip'    => true,
-			),
-			'clearsale' => array(
-				'title'       => 'Clearsale',
-				'type'        => 'checkbox',
-				'default'     => 'no',
-				'description' => 'Solução antifraude ClearSale (Contatar equipe técnica AZPay para utilizar)',
+            ),
+			'anti_fraud' => array(
+				'title'       => 'Soluções Antifraude',
+				'type'        => 'select',
+				'desc_tip'    => true,
+				'description' => 'Ferramentas de detecção de fraude (Contatar equipe técnica AZPay para utilizar)',
+				'default'     => '0',
+				'options'     => array(
+					'0' => 'Desabilitado',
+					'clearsale' => 'ClearSale',
+					'fcontrol' => 'FControl',
+					'konduto' => 'Konduto',
+				)
 			),
 			'auto_capture' => array(
 				'title'       => 'Captura Automática',
@@ -138,95 +162,7 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'default'     => 'no',
 				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',
 			),
-			'orderstatus_title' => array(
-				'title' => 'Configurando troca de status dos pedidos conforme retorno AZPay',
-				'type'  => 'title'
-			),
-			'azpaystatus_approved' => array(
-				'title'       => 'Transação aprovada',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna aprovada',
-				'default'     => 'completed',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			'azpaystatus_capturing' => array(
-				'title'       => 'Transação capturada / aguardando pagamento',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna capturada / aguardando pagamento',
-				'default'     => 'processing',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			'azpaystatus_cancelled' => array(
-				'title'       => 'Transação cancelada',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna cancelada',
-				'default'     => 'cancelled',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			'azpaystatus_unauthenticated' => array(
-				'title'       => 'Cartão não autenticado',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna cartão não autenticado',
-				'default'     => 'failed',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			'azpaystatus_unauthorized' => array(
-				'title'       => 'Transação não autorizada pela operadora',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna transação não autorizada pela operadora',
-				'default'     => 'failed',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			'azpaystatus_unapproved' => array(
-				'title'       => 'Transação não capturada',
-				'type'        => 'select',
-				'desc_tip'    => true,
-				'description' => 'Quando transação feita pelo azpay retorna transação não capturada',
-				'default'     => 'on-hold',
-				'options'     => array(
-					'completed' => 'Completado',
-					'processing' => 'Processando',
-					'cancelled' => 'Cancelado',
-					'failed' => 'Falho',
-					'on-hold' => 'Aguardando',
-				)
-			),
-			// Creditcard
+    		// Creditcard
 			'creditcard_title' => array(
 				'title' => 'Configurando bandeiras e operadoras',
 				'type'  => 'title'
@@ -243,9 +179,10 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Visa',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
-					'2' => 'Cielo - Buy Page Cielo',
+                    '2' => 'Cielo - Buy Page Cielo',
 					'3' => 'Redecard - Komerci WebService',
 					'4' => 'Redecard - Komerci Integrado',
 					'6' => 'Elavon',
@@ -295,7 +232,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Mastercard',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
 					'3' => 'Redecard - Komerci WebService',
@@ -347,9 +285,10 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Amex',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
-					'2' => 'Cielo - Buy Page Cielo',
+                    '2' => 'Cielo - Buy Page Cielo',
 				)
 			),
 			'amex_parcel_min' => array(
@@ -392,10 +331,14 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Diners',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
-				)
+					'3' => 'Redecard - Komerci WebService',
+					'4' => 'Redecard - Komerci Integrado',
+					'6' => 'Elavon',
+                )
 			),
 			'diners_parcel_min' => array(
 				'title'       => 'Parcela mínima',
@@ -437,7 +380,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Discover',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
 				)
@@ -482,7 +426,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira ELO',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
 				)
@@ -527,7 +472,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'description' => 'Configurar bandeira Aura',
 				'default'     => '0',
 				'options'     => array(
-					'0' => 'Bandeira Desabilitada',
+                    '0' => 'Bandeira Desabilitada',
+                    '26' => 'Cielo - V3.0',
 					'1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
 				)
@@ -573,7 +519,8 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 				'default'     => '0',
 				'options'     => array(
 					'0' => 'Bandeira Desabilitada',
-					'1' => 'Cielo - Buy Page Loja',
+                    '26' => 'Cielo - V3.0',
+                    '1' => 'Cielo - Buy Page Loja',
 					'2' => 'Cielo - Buy Page Cielo',
 				)
 			),
@@ -604,7 +551,6 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 					'12' => '12x',
 				)
 			),
-
 		);
 
 		$this->form_fields = $fields;
@@ -670,36 +616,54 @@ class WC_AZPay_Lite_Creditcard extends WC_Payment_Gateway {
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
 			$payment_method_config = get_option( 'woocommerce_azpay_lite_creditcard_settings' );
-			if (!isset($payment_method_config['clearsale']) || empty($payment_method_config['clearsale']) || $payment_method_config['clearsale'] == 'no') {
-
+			if (!isset($payment_method_config['anti_fraud']) || empty($payment_method_config['anti_fraud']) || $payment_method_config['anti_fraud'] == 'no') {
+                $az_pay->config_option['fraud'] = 'false';
 			} else {
-				$az_pay->config_options['fraud'] = 'true';
-				$az_pay->config_fraud_data['costumerIP'] = $_SERVER['REMOTE_ADDR'];
-				$az_pay->config_fraud_data['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
-				$az_pay->config_fraud_data['document'] = $customer_order->billing_cpf;
-				$az_pay->config_fraud_data['phonePrefix'] = substr($customer_order->billing_phone, 0, 4);
-				$az_pay->config_fraud_data['phoneNumber'] = $customer_order->billing_phone;
-				$az_pay->config_fraud_data['address'] = $customer_order->billing_address_1;
-				$az_pay->config_fraud_data['addressNumber'] = $customer_order->billing_number;
-				$az_pay->config_fraud_data['address2'] = $customer_order->billing_address_2;
-				$az_pay->config_fraud_data['city'] = $customer_order->billing_city;
-				$az_pay->config_fraud_data['state'] = $customer_order->billing_state;
-				$az_pay->config_fraud_data['postalCode'] = $customer_order->billing_postcode;
-				$az_pay->config_fraud_data['email'] = $customer_order->billing_email;
+                $az_pay->config_options['fraud'] = 'true';
+                $az_pay->config_anti_fraud['operator'] = $payment_method_config['anti_fraud'];
+
+                if ($payment_method_config['anti_fraud'] == 'clearsale')
+                    $az_pay->config_anti_fraud['method'] = 'start';
+
+                if ($payment_method_config['anti_fraud'] == 'fcontrol')
+                    $az_pay->config_anti_fraud['method'] = 'frame';
+
+                if ($payment_method_config['anti_fraud'] == 'konduto')
+                    $az_pay->config_anti_fraud['method'] == 'score';
+
+                $az_pay->config_anti_fraud['costumerIP'] = $_SERVER['REMOTE_ADDR'];
+				$az_pay->config_anti_fraud['name'] = $customer_order->billing_first_name . ' ' . $customer_order->billing_last_name;
+				$az_pay->config_anti_fraud['document'] = $customer_order->billing_cpf;
+				$az_pay->config_anti_fraud['phonePrefix'] = substr($customer_order->billing_phone, 0, 4);
+				$az_pay->config_anti_fraud['phoneNumber'] = $customer_order->billing_phone;
+				$az_pay->config_anti_fraud['address'] = $customer_order->billing_address_1;
+				$az_pay->config_anti_fraud['addressNumber'] = $customer_order->billing_number;
+				$az_pay->config_anti_fraud['address2'] = $customer_order->billing_address_2;
+				$az_pay->config_anti_fraud['city'] = $customer_order->billing_city;
+				$az_pay->config_anti_fraud['state'] = $customer_order->billing_state;
+				$az_pay->config_anti_fraud['postalCode'] = $customer_order->billing_postcode;
+				$az_pay->config_anti_fraud['email'] = $customer_order->billing_email;
 
 				$order_items = $customer_order->get_items();
 				$order_items_fraud = array();
 				foreach ($order_items as $item) {
 					$item = array(
-						'productname' => $item['name'],
-						'productqty' => $item['qty'],
-						'productvalue' => $item['line_subtotal']
+						'productName' => $item['name'],
+						'quantity' => $item['qty'],
+						'price' => $item['line_subtotal']
 					);
 					array_push($order_items_fraud, $item);
 				}
-				$az_pay->config_fraud_data['items'] = $order_items_fraud;
+				$az_pay->config_anti_fraud['itens'] = $order_items_fraud;
 
-			}
+            }
+            
+            if (!isset($payment_method_config['in_production']) || empty($payment_method_config['in_production']) || $payment_method_config['in_production'] == 'no') {
+                $az_pay->in_production = false; 
+            } else {
+                $az_pay->in_production = true;
+            }
+
 
 			// XML to log
 			$xml_log = clone $az_pay;

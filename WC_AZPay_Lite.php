@@ -5,7 +5,7 @@
  * Description: WooCommerce AZPay is a plugin to integrate the WooCommerce with AZPay, a brazilian payment gateway
  * Author: Gabriel Guerreiro
  * Author URI: http://www.gabrielguerreiro.com
- * Version: 1.2.6
+ * Version: 1.3.0
  * License: GNU General Public License v2.0
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -30,7 +30,7 @@ class WC_AZPay_Lite {
 	 * Version of the plugin
 	 *
 	 */
-	const VERSION = '1.2.6';
+	const VERSION = '1.3.0';
 
 	/**
 	 * Instance of this class
@@ -46,6 +46,8 @@ class WC_AZPay_Lite {
 			include_once(plugin_dir_path(__FILE__) . './vendors/azpay-php-sdk/azpay.php');
 			include_once 'includes/wc-azpay-lite-creditcard.php';
 			include_once 'includes/wc-azpay-lite-boleto.php';
+            include_once 'includes/wc-azpay-lite-debitcard.php';
+            include_once 'includes/wc-azpay-lite-subacquirers.php';
 
 			add_filter('woocommerce_payment_gateways', array($this, 'load_gateway'));
 
@@ -86,9 +88,11 @@ class WC_AZPay_Lite {
 	 * @return [type]
 	 */
 	public function load_gateway($current_gateways) {
-		$current_gateways[] = 'WC_AZPay_Lite_Creditcard';
-		$current_gateways[] = 'WC_AZPay_Lite_Boleto';
-		return $current_gateways;
+        $current_gateways[] = 'WC_AZPay_Lite_Creditcard';
+        $current_gateways[] = 'WC_AZPay_Lite_Debitcard';
+        $current_gateways[] = 'WC_AZPay_Lite_Boleto';
+        $current_gateways[] = 'WC_AZPay_Lite_Subacquirer';
+        return $current_gateways;
 	}
 
 

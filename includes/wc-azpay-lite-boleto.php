@@ -21,7 +21,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 		$this->id           = 'azpay_lite_boleto';
 		$this->icon         = null;
 		$this->has_fields   = true;
-		$this->method_title = 'AZPay Lite - Boleto Bancário';
+		$this->method_title = 'AZPay - Boleto';
 		$this->title = 'Boleto Bancário';
 
 		$this->init_form_fields();
@@ -111,6 +111,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 			'config' => array(
 				'title' => 'Configurando AZPay',
 				'type'  => 'title'
+            ),
+            'in_production' => array(
+				'title'       => 'Em Produção',
+				'type'        => 'checkbox',
+				'default'     => 'no',
+				'description' => 'Utilizar o ambiente de produção da AZPay. Se desmarcada, será utilizado o ambiente de homologação da AZPay.',
 			),
 			'merchant_id' => array(
 				'title'       => 'Merchant ID',
@@ -124,12 +130,12 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 				'description' => 'Chave da sua conta no AZPay',
 				'desc_tip'    => true,
 			),
-			'auto_capture' => array(
+			/*'auto_capture' => array(
 				'title'       => 'Captura Automática',
 				'type'        => 'checkbox',
 				'default'     => 'no',
 				'description' => 'Essa opção ativa a mudança automática do status do pedido, a partir das respostas do AZPay',				
-			),
+            ),*/
 
 			// Boleto Config
 			'boleto_config' => array(
@@ -152,7 +158,8 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 					'14' => 'Caixa (sem registro)',
 					'15' => 'Caixa (Sinco)',
 					'16' => 'Caixa (SIGCB)',
-					'17' => 'HSBC',
+                    '17' => 'HSBC',
+                    '22' => 'PagHiper'
 				)
 			),
 			'boleto_discount' => array(
@@ -238,6 +245,14 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 			$az_pay->config_billing['phone'] = $customer_order->billing_phone;
 			$az_pay->config_billing['email'] = $customer_order->billing_email;
 
+			$payment_method_config = get_option( 'woocommerce_azpay_lite_boleto_settings' );
+            if (!isset($payment_method_config['in_production']) || empty($payment_method_config['in_production']) || $payment_method_config['in_production'] == 'no') {
+                $az_pay->in_production = false; 
+            } else {
+                $az_pay->in_production = true;
+            }
+
+
 			// XML to log
 			$xml_log = clone $az_pay;
 			$xml_log->merchant['id'] = NULL;
@@ -311,7 +326,7 @@ class WC_AZPay_Lite_Boleto extends WC_Payment_Gateway {
 					'datetime' => current_time('mysql'),
 					'keylog' => 'BOLETO_ERROR',
 					'orderid' => $order_id,
-					'content' => json_encode($error),
+					'content' => 'teste',
 				) 
 			);
 

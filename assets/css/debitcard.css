@@ -1,29 +1,29 @@
-.azpay-lite-credit-card .inputs li {
+.azpay-lite-debit-card .inputs li {
     padding: 5px 0px;
     margin: 0;
     list-style: none;
 }
-.azpay-lite-credit-card p {
+.azpay-lite-debit-card p {
     margin: 0;
 }
 
-.azpay-lite-credit-card .input-flag {
+.azpay-lite-debit-card .input-flag {
     display: inline-block;
     margin-right: 10px;
 }
-.azpay-lite-credit-card .input-flag img {
+.azpay-lite-debit-card .input-flag img {
     margin: 0 !important;
 }
-.azpay-lite-credit-card .display-block {
+.azpay-lite-debit-card .display-block {
     display: inline-block;
     width: 49%;
 }
 
-.azpaylte-cc-form-parcel {
+.azpaylte-dc-form-parcel {
     border: 0;
     padding: 5px;
 }
 
-.azpaylte-cc-form-flag {
+.azpaylte-dc-form-flag {
     margin-right: 5px !important;
 }

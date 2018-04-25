@@ -64,6 +64,18 @@ wp_enqueue_script('creditcard', plugins_url( '../assets/js/creditcard.js', plugi
         			</div>
         		<?php endif ?>
 
+        		<?php if (0): ?>
+        			<div class="input-flag">
+        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_jcb" value="sorocred" data-mask="9999 9999 9999 9999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'sorocred');?>"><img src="<?php echo plugins_url('../assets/img/jcb.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
+        			</div>
+        		<?php endif ?>
+
+        		<?php if (0): ?>
+        			<div class="input-flag">
+        				<label><input type="radio" class="azpaylte-cc-form-flag" name="azpaylte_cc_form_flag" id="azpaylte_cc_form_cabal" value="cabal" data-mask="9999 9999 9999 9999" data-parcels="<?php echo $this->parcel_qnt($cart_total, 'cabal');?>"><img src="<?php echo plugins_url('../assets/img/jcb.jpg', plugin_dir_path( __FILE__ )); ?>" /></label>
+        			</div>
+        		<?php endif ?>
+
         	</li>
 
         	<li>
