@@ -87,9 +87,7 @@ class WC_AZPay_Lite {
 	 */
 	public function load_gateway($current_gateways) {
         $current_gateways[] = 'WC_AZPay_Lite_Creditcard';
-        $current_gateways[] = 'WC_AZPay_Lite_Debitcard';
         $current_gateways[] = 'WC_AZPay_Lite_Boleto';
-        $current_gateways[] = 'WC_AZPay_Lite_Subacquirer';
         return $current_gateways;
 	}
 
