@@ -210,7 +210,7 @@ class WC_AZPay_Lite {
 			switch ($callback['status']) {
 
 				case Config::$STATUS['APPROVED']:
-					$order->update_status($payment_method_config['azpaystatus_approved'], 'Pagamento confirmado. AZPay TID: ' . $callback['tid']);
+					$order->update_status('processing', 'Pagamento confirmado. AZPay TID: ' . $callback['tid']);
 					break;
 
 				case Config::$STATUS['CAPTURING']:
