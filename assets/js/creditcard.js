@@ -1,16 +1,16 @@
-jQuery(document).ready(function($){
+jQuery(document).ready(function(){
 
-    $("body").on('ajaxComplete', function(){
+    jQuery("body").on('ajaxComplete', function(){
 
-        $(".azpaylte-cc-form-name").val('');
-        $(".azpaylte-cc-form-number").val('');
-        $(".azpaylte-cc-form-validate").val('');
-        $(".azpaylte-cc-form-cvv").val('');
+        jQuery(".azpaylte-cc-form-name").val('');
+        jQuery(".azpaylte-cc-form-number").val('');
+        jQuery(".azpaylte-cc-form-validate").val('');
+        jQuery(".azpaylte-cc-form-cvv").val('');
 
-        payment_method = $('input[name="payment_method"]:checked').val();
+        payment_method = jQuery('input[name="payment_method"]:checked').val();
 
-        $(".azpaylte-cc-form-flag").eq(0).prop("checked", true);
-        $(".azpaylte-cc-form-validate").mask("99/99");
+        jQuery(".azpaylte-cc-form-flag").eq(0).prop("checked", true);
+        jQuery(".azpaylte-cc-form-validate").mask("99/99");
         numberMask();
         mountSelect();
         cvvMask();
@@ -21,7 +21,7 @@ jQuery(document).ready(function($){
     /**
      * On change flag
      */
-    $("body").on("click", ".azpaylte-cc-form-flag", function(){
+    jQuery("body").on("click", ".azpaylte-cc-form-flag", function(){
         mountSelect();
         numberMask();
         cvvMask();
@@ -31,19 +31,19 @@ jQuery(document).ready(function($){
     /**
      * OnClick to pay
      */
-    $("body").on("click", "#place_order", function(e){        
+    jQuery("body").on("click", "#place_order", function(e){        
 
-        payment_method = $('input[name="payment_method"]:checked').val();
+        payment_method = jQuery('input[name="payment_method"]:checked').val();
 
         // If select CreditCard payment method, validate data
         if (payment_method == 'azpay_lite_creditcard') {
             e.preventDefault();
 
-            flag = $(".azpaylte-cc-form-flag:checked").val();
-            name = $(".azpaylte-cc-form-name").val();
-            number = $(".azpaylte-cc-form-number").val();
-            cvv = $(".azpaylte-cc-form-cvv").val();
-            validate = $(".azpaylte-cc-form-validate").val();
+            flag = jQuery(".azpaylte-cc-form-flag:checked").val();
+            name = jQuery(".azpaylte-cc-form-name").val();
+            number = jQuery(".azpaylte-cc-form-number").val();
+            cvv = jQuery(".azpaylte-cc-form-cvv").val();
+            validate = jQuery(".azpaylte-cc-form-validate").val();
 
             if (name.length == 0) {
                 alert('Preencha o nome que está no cartão');
@@ -65,10 +65,10 @@ jQuery(document).ready(function($){
                 return;
             }
 
-            validate_card = $(".azpaylte-cc-form-number").validateCreditCard({accept: [flag]});
+            validate_card = jQuery(".azpaylte-cc-form-number").validateCreditCard({accept: [flag]});
 
             if (validate_card.valid && validate_card.length_valid && validate_card.luhn_valid) {
-                $(".woocommerce-checkout").submit();
+                jQuery(".woocommerce-checkout").submit();
             } else {
                 alert("Número do cartão inválido");
             }
@@ -82,12 +82,12 @@ jQuery(document).ready(function($){
      */
     function mountSelect() {
 
-        parcels = $(".azpaylte-cc-form-flag:checked").data("parcels");
-        $select_parcels = $(".azpaylte-cc-form-parcel");
+        parcels = jQuery(".azpaylte-cc-form-flag:checked").data("parcels");
+        $select_parcels = jQuery(".azpaylte-cc-form-parcel");
         $select_parcels.empty();
 
         for (var i=1; i<=parcels; i++) {
-            option = $('<option></option>').attr("value", i).text(i + "x");
+            option = jQuery('<option></option>').attr("value", i).text(i + "x");
             $select_parcels.append(option);
         };
     }
@@ -98,7 +98,7 @@ jQuery(document).ready(function($){
      * @return {[type]} [void]
      */
     function numberMask() {
-        $(".azpaylte-cc-form-number").mask($(".azpaylte-cc-form-flag:checked").data('mask'));
+        jQuery(".azpaylte-cc-form-number").mask(jQuery(".azpaylte-cc-form-flag:checked").data('mask'));
     }
 
     /**
@@ -106,10 +106,10 @@ jQuery(document).ready(function($){
      * @return {[type]}      [void]
      */
     function cvvMask() {
-        if ($(".azpaylte-cc-form-flag:checked").val() === "amex") {
-            $(".azpaylte-cc-form-cvv").mask("9999");
+        if (jQuery(".azpaylte-cc-form-flag:checked").val() === "amex") {
+            jQuery(".azpaylte-cc-form-cvv").mask("9999");
         } else {
-            $(".azpaylte-cc-form-cvv").mask("999");
+            jQuery(".azpaylte-cc-form-cvv").mask("999");
         }
     }
 
